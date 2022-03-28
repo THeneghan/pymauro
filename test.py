@@ -1,17 +1,18 @@
 #Test ground
 
 class Student:
-    def __init__(self):
-        self._name=None
+    wey=9
+    def __init__(self,name,age=None):
+        self.name=name
+        self.age=age
 
-    @property
-    def name(self):
-        return self._name
 
-    @name.setter
-    def name(self, value):
-        self._name = value
+val = Student("TOm",77)
+print(val.age)
+val2=Student("james")
+print(val2.age)
 
-Val=Student()
-Val.name="Hello"
-print(Val.name)
+
+import testconnection
+print(testconnection.__doc__)
+
