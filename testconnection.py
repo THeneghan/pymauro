@@ -12,13 +12,17 @@ Currently documentation is lacking but the functionality can be approximately de
 as described in the documentation for the analogous Java Client library at
 https://maurodatamapper.github.io/resources/client/java/#binding-vs-non-binding-clients """
 import requests
-import json
 
 
 def test_my_url(url):
     """Takes the url (string) and appends /api/test.
 This new path is then sent a get request. The response is
-returned """
+returned
+
+Arguments:
+    url: A string
+Returns:
+    The get response for the url appended with /api/test"""
     response = requests.get(url + "/api/test")
     return response
 
@@ -31,7 +35,7 @@ class BaseClient:
     provision of one and not the other.
 
     The user must provide at least a username and password or an API key. A type error will return if the arguments
-    provided are not valid
+    provided do not abide by this rule
 
     """
 
@@ -53,6 +57,12 @@ class BaseClient:
             self.cookie = None
 
     def test_my_connection(self):
+        """Executes a post request with username and password as json payload to the baseurl appended with
+        /api/authentication/login. The response is returned
+        Arguments:
+            None
+        Returns:
+            The post response for the url appended with /api/authentication/login"""
         if self.username is None:
             raise TypeError("You must provide a username and password to access this method")
         json_payload = dict(username=self.username, password=self.__password)
@@ -60,6 +70,13 @@ class BaseClient:
         return response
 
     def check_for_valid_session(self):
+        """Executes a get request to the url + /api/session/isAuthenticated
+        with the session ID in the cookies header.
+        The response is returned
+        Arguments:
+            None
+        Returns:
+            The get response for the url appended with /api/session/isAuthenticated"""
         if self.username is None:
             raise TypeError("You must provide a username and password to access this method")
         response = requests.get(self.baseURL + "/api/session/isAuthenticated", cookies=self.cookie)
@@ -84,6 +101,7 @@ class BaseClient:
         return "Mauro Client Object"
 
     def list_apis(self, id_input=None):
+        response = None
         if self.username is None and id_input is None:
             raise TypeError("A username/password or an id "
                             "method argument is required for this method to work")
@@ -91,39 +109,50 @@ class BaseClient:
             default_id = self.test_my_connection().json()['id']
             response = requests.get(self.baseURL + "/api/catalogueUsers/" + default_id + "/apiKeys",
                                     cookies=self.cookie)
-            return response
         elif self.api_key is None and id_input is not None:
             response = requests.get(self.baseURL + "/api/catalogueUsers/" + id_input + "/apiKeys",
                                     cookies=self.cookie)
-            return response
         elif self.api_key is not None and id_input is None:
             default_id = self.test_my_connection().json()['id']
             response = requests.get(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys",
                                     headers={'apiKey': self.api_key})
-            return response
         elif self.api_key is not None and id_input is not None:
             response = requests.get(self.baseURL + "/api/catalogueUsers/" + id_input + "/apiKeys",
                                     headers={'apiKey': self.api_key})
-            return response
+        return response
 
-    def create_new_api_key(self, key_name='My Name', expiry=365, refreshable=True, id_input=None, ):
-        if self.api_key is not None:
-            default_id = self.test_my_connection().json()['id']
+    def create_new_api_key(self, key_name='My Name', expiry=365, refreshable=True, id_input=None):
+        if self.username is None and id_input is None:
+            raise TypeError("A username/password or an id "
+                            "method argument is required for this method to work")
+        elif self.api_key is not None:
             json_payload = dict(name=key_name, expiresInDays=expiry, refreshable=refreshable)
             if id_input is None:
+                default_id = self.test_my_connection().json()['id']
                 response = requests.post(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys",
                                          headers={'apiKey': self.api_key}, json=json_payload)
             else:
                 response = requests.post(self.baseURL + "/api/catalogueUsers/" + id_input + "/apiKeys",
                                          headers={'apiKey': self.api_key}, json=json_payload)
-            return response
         else:
-            raise TypeError("An API Key must be passed to this instance of class for this method to work")
+            if id_input is None:
+                json_payload = dict(name=key_name, expiresInDays=expiry, refreshable=refreshable)
+                default_id = self.test_my_connection().json()['id']
+                response = requests.post(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys",
+                                         cookies=self.cookie, json=json_payload)
+            else:
+                json_payload = dict(name=key_name, expiresInDays=expiry, refreshable=refreshable)
+                response = requests.post(self.baseURL + "/api/catalogueUsers/" + str(id_input) + "/apiKeys",
+                                         cookies=self.cookie, json=json_payload)
+        return response
 
     def delete_api_key(self, key_to_delete, id_input=None):
-        if self.api_key is not None:
-            default_id = self.test_my_connection().json()['id']
+        if self.username is None and id_input is None:
+            raise TypeError("A username/password or an id "
+                            "method argument is required for this method to work")
+        elif self.api_key is not None:
             if id_input is None:
+                default_id = self.test_my_connection().json()['id']
                 response = requests.delete(
                     self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/" + str(key_to_delete),
                     headers={'apiKey': self.api_key})
@@ -133,12 +162,26 @@ class BaseClient:
                     headers={'apiKey': self.api_key})
             return response
         else:
-            raise TypeError("An API Key must be passed to this instance of class for this method to work")
+            if id_input is None:
+                default_id = self.test_my_connection().json()['id']
+                print(default_id)
+                response = requests.delete(
+                    self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/" + str(key_to_delete),
+                    cookies=self.cookie)
+            else:
+                response = requests.delete(
+                    self.baseURL + "/api/catalogueUsers/" + id_input + "/apiKeys/" + str(key_to_delete),
+                    cookies=self.cookie)
+            return response
+
 
     def disable_api_key(self, key_to_disable, id_input=None):
-        if self.api_key is not None:
-            default_id = self.test_my_connection().json()['id']
+        if self.username is None and id_input is None:
+            raise TypeError("A username/password or an id "
+                            "method argument is required for this method to work")
+        elif self.api_key is not None:
             if id_input is None:
+                default_id = self.test_my_connection().json()['id']
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/"
                                         + str(key_to_disable) + "/disable", headers={'apiKey': self.api_key})
             else:
@@ -146,12 +189,23 @@ class BaseClient:
                                         + str(key_to_disable) + "/disable", headers={'apiKey': self.api_key})
             return response
         else:
-            raise TypeError("An API Key must be passed to this instance of class for this method to work")
+            if id_input is None:
+                default_id = self.test_my_connection().json()['id']
+                response = requests.put(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/"
+                                        + str(key_to_disable) + "/disable", cookies=self.cookie)
+            else:
+                response = requests.put(self.baseURL + "/api/catalogueUsers/" + id_input + "/apiKeys/"
+                                        + str(key_to_disable) + "/disable", cookies=self.cookie)
+            return response
+
 
     def enable_api_key(self, key_to_disable, id_input=None):
-        if self.api_key is not None:
-            default_id = self.test_my_connection().json()['id']
+        if self.username is None and id_input is None:
+            raise TypeError("A username/password or an id "
+                            "method argument is required for this method to work")
+        elif self.api_key is not None:
             if id_input is None:
+                default_id = self.test_my_connection().json()['id']
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/"
                                         + str(key_to_disable) + "/enable", headers={'apiKey': self.api_key})
             else:
@@ -160,22 +214,41 @@ class BaseClient:
             return response
 
         else:
-            raise TypeError("An API Key must be passed to this instance of class for this method to work")
-
-    def refresh_api_key(self, key_to_disable, days_until_expiry, id_input=None):
-        if self.api_key is not None:
-            default_id = self.test_my_connection().json()['id']
             if id_input is None:
+                default_id = self.test_my_connection().json()['id']
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/"
-                                        + str(key_to_disable) + "/refresh/" + str(days_until_expiry),
+                                        + str(key_to_disable) + "/enable", cookies=self.cookie)
+            else:
+                response = requests.put(self.baseURL + "/api/catalogueUsers/" + id_input + "/apiKeys/" +
+                                        str(key_to_disable) + "/enable", cookies=self.cookie)
+            return response
+
+    def refresh_api_key(self, key_to_refresh, days_until_expiry, id_input=None):
+        if self.username is None and id_input is None:
+            raise TypeError("A username/password or an id "
+                            "method argument is required for this method to work")
+        elif self.api_key is not None:
+            if id_input is None:
+                default_id = self.test_my_connection().json()['id']
+                response = requests.put(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/"
+                                        + str(key_to_refresh) + "/refresh/" + str(days_until_expiry),
                                         headers={'apiKey': self.api_key})
             else:
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + id_input + "/apiKeys/" +
-                                        str(key_to_disable) + "/refresh/" + str(days_until_expiry),
+                                        str(key_to_refresh) + "/refresh/" + str(days_until_expiry),
                                         headers={'apiKey': self.api_key})
             return response
         else:
-            raise TypeError("An API Key must be passed to this instance of class for this method to work")
+            if id_input is None:
+                default_id = self.test_my_connection().json()['id']
+                response = requests.put(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/"
+                                        + str(key_to_refresh) + "/refresh/" + str(days_until_expiry),
+                                        cookies=self.cookie)
+            else:
+                response = requests.put(self.baseURL + "/api/catalogueUsers/" + id_input + "/apiKeys/" +
+                                        str(key_to_refresh) + "/refresh/" + str(days_until_expiry),
+                                        cookies=self.cookie)
+            return response
 
     def list_folders(self, offset=0, max_limit=10, show_all=False):
         if self.api_key is not None:
@@ -194,36 +267,50 @@ class BaseClient:
         return response
 
     def properties(self, catalogue_item_domain_type, catalogue_item_id):
+        val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
+                            "referenceDataModels"]
+        if catalogue_item_domain_type not in val_domain_types:
+            raise ValueError("catalogueItemDomainType must be in " + str(val_domain_types))
         if self.api_key is not None:
-            val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
-                                "referenceDataModels"]
-            if catalogue_item_domain_type not in val_domain_types:
-                return "catalogueItemDomainType must be in " + str(val_domain_types)
             response = requests.get(
                 self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
                 headers={'apiKey': self.api_key})
             return response
         else:
-            raise TypeError("An API Key must be passed to this instance of class for this method to work")
+            response = requests.get(
+                self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
+                cookies =self.cookie)
+            return response
 
     def permissions(self, catalogue_item_domain_type, id_input):
         val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
                             "referenceDataModels"]
         if catalogue_item_domain_type not in val_domain_types:
-            return "catalogueItemDomainType must be in " + str(val_domain_types)
-        print(self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(id_input) + "/permissions")
-        print(self.cookie)
-        response = requests.get(self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(id_input) +
-                                "/permissions", cookies=self.cookie)
-        return response
+            raise ValueError ("catalogueItemDomainType must be in " + str(val_domain_types))
+        if self.api_key is not None:
+            response = requests.get(self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(id_input) +
+                                "/permissions", headers={'apiKey': self.api_key})
+            return response
+        else:
+            response = requests.get(self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(id_input) +
+                                    "/permissions", cookies=self.cookie)
+            return response
+
 
     def post_metadata(self, catalogue_item_domain_type, catalogue_item_id, namespace_inp, key_val, value_inp):
         val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
                             "referenceDataModels"]
         if catalogue_item_domain_type not in val_domain_types:
-            return "catalogueItemDomainType must be in " + str(val_domain_types)
+            raise ValueError ("catalogueItemDomainType must be in " + str(val_domain_types))
         json_payload = dict(id=catalogue_item_id, namespace=namespace_inp, key=key_val, value=value_inp)
-        response = requests.post(
+        if self.api_key is not None:
+            response = requests.post(
             self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
             headers={'apiKey': self.api_key}, json=json_payload)
-        return response
+            return response
+        else:
+            response = requests.post(
+                self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
+                cookies=self.cookie, json=json_payload)
+            return response
+

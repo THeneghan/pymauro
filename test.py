@@ -1,17 +1,13 @@
 import config
 import testconnection as tc
 
-#Fine
+#All should instantiate fine
 MyClient = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", "thomas.heneghan@ons.gov.uk", config.password,
                          api_key="5eb00202-3701-47ca-9bda-317e209b29ee")
-#Fine
 MyClient2 = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", api_key="5eb00202-3701-47ca-9bda-317e209b29ee")
 
-#Fine
 MyClient3 = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", "thomas.heneghan@ons.gov.uk", config.password)
 
-#Doesn't work, don't know why
-#tc.test_my_url("https://modelcatalogue.cs.ox.ac.uk/ons")
 
 #Fails as incomplete password/username pairing is given
 #FailingClient = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", password="val",api_key="5eb00202-3701-47ca-9bda-317e209b29ee")
@@ -46,6 +42,25 @@ MyClient3 = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", "thomas.hene
 #Fails as no api key provided and no input provided
 #print(MyClient2.list_apis().json())
 
+
+#print(MyClient.create_new_api_key("hello5").json())
+#print(MyClient3.create_new_api_key("hello6").json())
+
+#print(MyClient2.create_new_api_key("hello2").json())
+
+#print(MyClient3.delete_api_key("ffa27c47-ed37-46ef-9c68-55d8600e355f","a43c5618-e660-4fdf-af3a-8c7528b58982").json())
+#print(MyClient.delete_api_key("hello55",id_input="a43c5618-e660-4fdf-af3a-8c7528b58982").json())
+#print(MyClient3.delete_api_key("hello65",id_input="a43c5618-e660-4fdf-af3a-8c7528b58982").json())
+
+#print(MyClient2.refresh_api_key("3015b2ce-4f7c-4265-9f14-88710379f24e",10,"a43c5618-e660-4fdf-af3a-8c7528b58982").json())
+
+print(MyClient2.permissions("folders","4d3aa3fd-0690-4099-948f-45b2e233472e").json())
+print(MyClient3.permissions("folders","4d3aa3fd-0690-4099-948f-45b2e233472e").json())
+
+
+
+#Need to do properties etc onwards
+
 #print(MyClient3.list_apis("a43c5618-e660-4fdf-af3a-8c7528b58982").json())
 #print(MyClient3.list_apis().json())
 
@@ -59,3 +74,4 @@ MyClient3 = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", "thomas.hene
 
 
 # print(MyClient.properties("folders","3b3ca080-0c75-4a50-a993-5ec6e87f631e").json())
+
