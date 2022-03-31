@@ -174,7 +174,6 @@ class BaseClient:
                     cookies=self.cookie)
             return response
 
-
     def disable_api_key(self, key_to_disable, id_input=None):
         if self.username is None and id_input is None:
             raise TypeError("A username/password or an id "
@@ -197,7 +196,6 @@ class BaseClient:
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + id_input + "/apiKeys/"
                                         + str(key_to_disable) + "/disable", cookies=self.cookie)
             return response
-
 
     def enable_api_key(self, key_to_disable, id_input=None):
         if self.username is None and id_input is None:
@@ -266,51 +264,241 @@ class BaseClient:
                 response = requests.get(self.baseURL + "/api/folders?all=true", cookies=self.cookie)
         return response
 
-    def properties(self, catalogue_item_domain_type, catalogue_item_id):
+    def properties(self, catalogue_item_domain_type, catalogue_item_id, metadata_id=None):
         val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
                             "referenceDataModels"]
         if catalogue_item_domain_type not in val_domain_types:
             raise ValueError("catalogueItemDomainType must be in " + str(val_domain_types))
         if self.api_key is not None:
-            response = requests.get(
-                self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
-                headers={'apiKey': self.api_key})
+            if metadata_id is None:
+                response = requests.get(
+                    self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
+                    headers={'apiKey': self.api_key})
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(
+                        catalogue_item_id) + "/metadata/" + str(metadata_id),
+                    headers={'apiKey': self.api_key})
             return response
         else:
-            response = requests.get(
-                self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
-                cookies =self.cookie)
+            if metadata_id is None:
+                response = requests.get(
+                    self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
+                    cookies=self.cookie)
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(
+                        catalogue_item_id) + "/metadata/" + str(metadata_id),
+                    cookies=self.cookie)
             return response
 
     def permissions(self, catalogue_item_domain_type, id_input):
         val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
                             "referenceDataModels"]
         if catalogue_item_domain_type not in val_domain_types:
-            raise ValueError ("catalogueItemDomainType must be in " + str(val_domain_types))
+            raise ValueError("catalogueItemDomainType must be in " + str(val_domain_types))
         if self.api_key is not None:
             response = requests.get(self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(id_input) +
-                                "/permissions", headers={'apiKey': self.api_key})
+                                    "/permissions", headers={'apiKey': self.api_key})
             return response
         else:
             response = requests.get(self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(id_input) +
                                     "/permissions", cookies=self.cookie)
             return response
 
-
     def post_metadata(self, catalogue_item_domain_type, catalogue_item_id, namespace_inp, key_val, value_inp):
         val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
                             "referenceDataModels"]
         if catalogue_item_domain_type not in val_domain_types:
-            raise ValueError ("catalogueItemDomainType must be in " + str(val_domain_types))
+            raise ValueError("catalogueItemDomainType must be in " + str(val_domain_types))
         json_payload = dict(id=catalogue_item_id, namespace=namespace_inp, key=key_val, value=value_inp)
         if self.api_key is not None:
             response = requests.post(
-            self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
-            headers={'apiKey': self.api_key}, json=json_payload)
+                self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
+                headers={'apiKey': self.api_key}, json=json_payload)
             return response
         else:
             response = requests.post(
                 self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
                 cookies=self.cookie, json=json_payload)
             return response
+
+    # def edit_metadata(self,catalogue_item_domain_type, catalogue_item_id,metadata_id, id_value):
+    #     val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
+    #                         "referenceDataModels"]
+    #     if catalogue_item_domain_type not in val_domain_types:
+    #         raise ValueError("catalogueItemDomainType must be in " + str(val_domain_types))
+    #     json_payload = dict(metadata_id=id_value)
+    #     if self.api_key is not None:
+    #         response = requests.put(
+    #             self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata/"
+    #             + str(metadata_id),
+    #             headers={'apiKey': self.api_key}, json=json_payload)
+    #         return response
+    #     else:
+    #         response = requests.put(
+    #             self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata/"
+    #             + str(metadata_id),
+    #             cookies=self.cookie, json=json_payload)
+    #         return response
+
+
+    def get_classifers(self, classifier_id=None, id_input=None):
+        if self.api_key is not None:
+            if classifier_id is None and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/classifiers",
+                    headers={'apiKey': self.api_key})
+            elif classifier_id and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/classifiers/" + str(classifier_id)+"/classifiers",
+                    headers={'apiKey': self.api_key})
+            elif id_input and classifier_id is None:
+                response = requests.get(
+                    self.baseURL + "/api/classifiers/" + str(id_input),
+                    headers={'apiKey': self.api_key})
+            elif id_input and id_input:
+                response = requests.get(
+                    self.baseURL + "/api/classifiers/" + str(classifier_id) + "/classifiers/" + str(id_input),
+                    headers={'apiKey': self.api_key})
+        else:
+            if classifier_id is None and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/classifiers",
+                    cookies=self.cookie)
+            elif classifier_id and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/classifiers/" + str(classifier_id) + "/classifiers",
+                    cookies=self.cookie)
+            elif id_input and classifier_id is None:
+                response = requests.get(
+                    self.baseURL + "/api/classifiers/" + str(id_input),
+                    cookies=self.cookie)
+            elif id_input and id_input:
+                response = requests.get(
+                    self.baseURL + "/api/classifiers/" + str(classifier_id) + "/classifiers/" + str(id_input),
+                    cookies=self.cookie)
+        return response
+
+    def get_data_classes(self, data_model_id, data_class_id=None, id_input=None):
+        if self.api_key is not None:
+            if data_class_id is None and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(data_model_id) + "/dataClasses",
+                    headers={'apiKey': self.api_key})
+            elif data_class_id and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(data_model_id) + "/dataClasses/" + str(data_class_id)
+                    + "/dataClasses",
+                    headers={'apiKey': self.api_key})
+            elif id_input and data_class_id is None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/"+str(id_input),
+                    headers={'apiKey': self.api_key})
+            elif id_input and id_input:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(data_model_id) + "/dataClasses/" + str(data_class_id) +
+                    "/dataClasses/" + str(id_input),
+                    headers={'apiKey': self.api_key})
+        else:
+            if data_class_id is None and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(data_model_id) + "/dataClasses",
+                    cookies=self.cookie)
+            elif data_class_id and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(data_model_id) + "/dataClasses/" + str(data_class_id)
+                    + "/dataClasses",
+                    cookies=self.cookie)
+            elif id_input and data_class_id is None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/"+str(id_input),
+                    cookies=self.cookie)
+            elif id_input and id_input:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(data_model_id) + "/dataClasses/" + str(data_class_id) +
+                    "/dataClasses/" + str(id_input),
+                    cookies=self.cookie)
+        return response
+
+
+
+    def get_codesets(self, folder_id=None, codeset_id=None):
+        if self.api_key is not None:
+            if folder_id is None and codeset_id is None:
+                response = requests.get(
+                    self.baseURL + "/api/codeSets/",
+                    headers={'apiKey': self.api_key})
+            elif codeset_id is None:
+                response = requests.get(
+                    self.baseURL + "/api/folders/" + str(folder_id)+"/codeSets/",
+                    headers={'apiKey': self.api_key})
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/codeSets/" + str(codeset_id),
+                    headers={'apiKey': self.api_key})
+        else:
+            if folder_id is None and codeset_id is None:
+                response = requests.get(
+                    self.baseURL + "/api/codeSets/",
+                    cookies=self.cookie)
+            elif codeset_id is None:
+                response = requests.get(
+                    self.baseURL + "/api/folders/" + str(folder_id)+"/codeSets/",
+                    cookies=self.cookie)
+
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/codeSets/" + str(codeset_id),
+                    cookies=self.cookie)
+        return response
+
+
+    def get_data_element(self, data_model_id, data_class_id, id_input=None):
+        if self.api_key is not None:
+            if id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(data_model_id) + "/dataClasses/" + str(data_class_id)
+                    + "/dataElements",
+                    headers={'apiKey': self.api_key})
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(data_model_id) + "/dataClasses/" + str(data_class_id)
+                    + "/dataElements/" + str(id_input),
+                    headers={'apiKey': self.api_key})
+        else:
+            if id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(data_model_id) + "/dataClasses/" + str(data_class_id)
+                    + "/dataElements",
+                    cookies=self.cookie)
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(data_model_id) + "/dataClasses/" + str(data_class_id)
+                    + "/dataElements/" + str(id_input),
+                    cookies=self.cookie)
+        return response
+
+
+    def get_data_model(self, folder_id=None, id_input=None):
+        if self.api_key is not None:
+            if folder_id is None and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels",
+                    headers={'apiKey': self.api_key})
+                return response
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

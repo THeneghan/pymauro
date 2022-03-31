@@ -54,8 +54,20 @@ MyClient3 = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", "thomas.hene
 
 #print(MyClient2.refresh_api_key("3015b2ce-4f7c-4265-9f14-88710379f24e",10,"a43c5618-e660-4fdf-af3a-8c7528b58982").json())
 
-print(MyClient2.permissions("folders","4d3aa3fd-0690-4099-948f-45b2e233472e").json())
-print(MyClient3.permissions("folders","4d3aa3fd-0690-4099-948f-45b2e233472e").json())
+
+#print(MyClient.get_classifer().json())
+
+print(MyClient.get_classifers().json())
+print(MyClient2.get_classifers().json())
+print(MyClient3.get_classifers().json())
+
+MyClient.get_data
+
+#print(MyClient3.get_data_classes("c2e3034d-f127-4130-9224-26641ab3b0de").json())
+#print(MyClient.get_data_element("654c255a-c54d-405b-b8da-7ca0c7193f35","ac1519c6-0f9f-4a06-b198-69a508a9cacb").json())
+
+
+
 
 
 
