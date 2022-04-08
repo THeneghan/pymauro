@@ -8,7 +8,8 @@ MyClient2 = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", api_key="5eb
 
 MyClient3 = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", "thomas.heneghan@ons.gov.uk", config.password)
 
-
+print(MyClient.get_versioned_folders().json())
+print(MyClient.get_data_model().json())
 #Fails as incomplete password/username pairing is given
 #FailingClient = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", password="val",api_key="5eb00202-3701-47ca-9bda-317e209b29ee")
 
@@ -57,11 +58,9 @@ MyClient3 = tc.BaseClient("https://modelcatalogue.cs.ox.ac.uk/ons", "thomas.hene
 
 #print(MyClient.get_classifer().json())
 
-print(MyClient.get_classifers().json())
-print(MyClient2.get_classifers().json())
-print(MyClient3.get_classifers().json())
-
-MyClient.get_data
+# print(MyClient.get_classifers().json())
+# print(MyClient2.get_classifers().json())
+# print(MyClient3.get_classifers().json())
 
 #print(MyClient3.get_data_classes("c2e3034d-f127-4130-9224-26641ab3b0de").json())
 #print(MyClient.get_data_element("654c255a-c54d-405b-b8da-7ca0c7193f35","ac1519c6-0f9f-4a06-b198-69a508a9cacb").json())

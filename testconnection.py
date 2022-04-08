@@ -264,7 +264,7 @@ class BaseClient:
                 response = requests.get(self.baseURL + "/api/folders?all=true", cookies=self.cookie)
         return response
 
-    def properties(self, catalogue_item_domain_type, catalogue_item_id, metadata_id=None):
+    def get_metadata(self, catalogue_item_domain_type, catalogue_item_id, metadata_id=None):
         val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
                             "referenceDataModels"]
         if catalogue_item_domain_type not in val_domain_types:
@@ -272,7 +272,8 @@ class BaseClient:
         if self.api_key is not None:
             if metadata_id is None:
                 response = requests.get(
-                    self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
+                    self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(
+                        catalogue_item_id) + "/metadata",
                     headers={'apiKey': self.api_key})
             else:
                 response = requests.get(
@@ -283,7 +284,8 @@ class BaseClient:
         else:
             if metadata_id is None:
                 response = requests.get(
-                    self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata",
+                    self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(
+                        catalogue_item_id) + "/metadata",
                     cookies=self.cookie)
             else:
                 response = requests.get(
@@ -342,7 +344,6 @@ class BaseClient:
     #             cookies=self.cookie, json=json_payload)
     #         return response
 
-
     def get_classifers(self, classifier_id=None, id_input=None):
         if self.api_key is not None:
             if classifier_id is None and id_input is None:
@@ -351,7 +352,7 @@ class BaseClient:
                     headers={'apiKey': self.api_key})
             elif classifier_id and id_input is None:
                 response = requests.get(
-                    self.baseURL + "/api/classifiers/" + str(classifier_id)+"/classifiers",
+                    self.baseURL + "/api/classifiers/" + str(classifier_id) + "/classifiers",
                     headers={'apiKey': self.api_key})
             elif id_input and classifier_id is None:
                 response = requests.get(
@@ -393,7 +394,7 @@ class BaseClient:
                     headers={'apiKey': self.api_key})
             elif id_input and data_class_id is None:
                 response = requests.get(
-                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/"+str(id_input),
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + str(id_input),
                     headers={'apiKey': self.api_key})
             elif id_input and id_input:
                 response = requests.get(
@@ -412,7 +413,7 @@ class BaseClient:
                     cookies=self.cookie)
             elif id_input and data_class_id is None:
                 response = requests.get(
-                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/"+str(id_input),
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + str(id_input),
                     cookies=self.cookie)
             elif id_input and id_input:
                 response = requests.get(
@@ -420,8 +421,6 @@ class BaseClient:
                     "/dataClasses/" + str(id_input),
                     cookies=self.cookie)
         return response
-
-
 
     def get_codesets(self, folder_id=None, codeset_id=None):
         if self.api_key is not None:
@@ -431,7 +430,7 @@ class BaseClient:
                     headers={'apiKey': self.api_key})
             elif codeset_id is None:
                 response = requests.get(
-                    self.baseURL + "/api/folders/" + str(folder_id)+"/codeSets/",
+                    self.baseURL + "/api/folders/" + str(folder_id) + "/codeSets/",
                     headers={'apiKey': self.api_key})
             else:
                 response = requests.get(
@@ -444,7 +443,7 @@ class BaseClient:
                     cookies=self.cookie)
             elif codeset_id is None:
                 response = requests.get(
-                    self.baseURL + "/api/folders/" + str(folder_id)+"/codeSets/",
+                    self.baseURL + "/api/folders/" + str(folder_id) + "/codeSets/",
                     cookies=self.cookie)
 
             else:
@@ -452,7 +451,6 @@ class BaseClient:
                     self.baseURL + "/api/codeSets/" + str(codeset_id),
                     cookies=self.cookie)
         return response
-
 
     def get_data_element(self, data_model_id, data_class_id, id_input=None):
         if self.api_key is not None:
@@ -479,26 +477,144 @@ class BaseClient:
                     cookies=self.cookie)
         return response
 
-
     def get_data_model(self, folder_id=None, id_input=None):
         if self.api_key is not None:
             if folder_id is None and id_input is None:
                 response = requests.get(
                     self.baseURL + "/api/dataModels",
                     headers={'apiKey': self.api_key})
+            elif folder_id is None and id_input is not None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(id_input),
+                    headers={'apiKey': self.api_key})
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/folders/" + str(folder_id) + "/dataModels",
+                    headers={'apiKey': self.api_key})
+        else:
+            if folder_id is None and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels",
+                    cookies=self.cookie)
                 return response
+            elif folder_id is None and id_input is not None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + str(id_input),
+                    cookies=self.cookie)
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/folders/" + str(folder_id) + "/dataModels",
+                    cookies=self.cookie)
+        return response
+
+    def get_versioned_folders(self, folder_id=None, id_input=None):
+        if self.api_key is not None:
+            if folder_id is None and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/versionedFolders",
+                    headers={'apiKey': self.api_key})
+            elif folder_id is None and id_input is not None:
+                response = requests.get(
+                    self.baseURL + "/api/versionedFolders" + str(id_input),
+                    headers={'apiKey': self.api_key})
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/folders/" + str(folder_id) + "/versionedFolders",
+                    headers={'apiKey': self.api_key})
+        else:
+            if folder_id is None and id_input is None:
+                response = requests.get(
+                    self.baseURL + "/api/versionedFolders",
+                    cookies=self.cookie)
+                return response
+            elif folder_id is None and id_input is not None:
+                response = requests.get(
+                    self.baseURL + "/api/versionedFolders" + str(id_input),
+                    cookies=self.cookie)
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/folders/" + str(folder_id) + "/versionedFolders",
+                    cookies=self.cookie)
+        return response
+
+    def build_versioned_folder(self, json_payload):
+        if self.api_key is not None:
+            response = requests.post(
+                self.baseURL + "/api/versionedFolders",
+                headers={'apiKey': self.api_key}, json=json_payload)
+        else:
+            response = requests.post(
+                self.baseURL + "/api/versionedFolders",
+                cookies=self.cookie, json=json_payload)
+        return response
+
+    def create_data_model(self, folder_id, json_payload):
+        """
+
+        Takes a folder ID and JSON payload to create a data model in the specified folder.
+        Returns the response
+
+        Example of json payload
+        payload={"folder":"ab12f37e-2bf7-314d-b9a0-5133279e66b7","author":"TomHeneghan","description":"InsertDescription",
+        "label":"MyLabel","organisation":"ONS","type":"Data Asset","classifiers":[]}
+
+        :param folder_id: String
+        :param json_payload: Dictionary or JSON
+        :return: Response
+        """
+        if self.api_key is not None:
+            response = requests.post(
+                self.baseURL + "/api/folders/"+str(folder_id)+"/dataModels",
+                headers={'apiKey': self.api_key}, json=json_payload)
+        else:
+            response = requests.post(
+                self.baseURL + "/api/folders/"+str(folder_id)+"/dataModels",
+                cookies=self.cookie, json=json_payload)
+        return response
 
 
+    def build_folder(self, json_payload):
+        if self.api_key is not None:
+            response = requests.post(
+                self.baseURL + "/api/folders",
+                headers={'apiKey': self.api_key}, json=json_payload)
+        else:
+            response = requests.post(
+                self.baseURL + "/api/folders",
+                cookies=self.cookie, json=json_payload)
+        return response
 
 
+    def create_new_data_class(self, json_payload, data_model_id, data_class_id=None):
+        if self.api_key is not None:
+            if data_class_id is None:
+                response = requests.post(
+                    self.baseURL + "/api/dataModels/" + data_model_id +"/dataClasses",
+                    headers={'apiKey': self.api_key}, json=json_payload)
+            else:
+                response = requests.post(
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + data_class_id +"/dataClasses",
+                    headers={'apiKey': self.api_key}, json=json_payload)
+        else:
+            if data_class_id is None:
+                response = requests.post(
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses",
+                    cookies=self.cookie, json=json_payload)
+            else:
+                response = requests.post(
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + data_class_id + "/dataClasses",
+                   cookies=self.cookie, json=json_payload)
+        return response
 
 
-
-
-
-
-
-
-
-
+    def create_data_element(self,json_payload, data_model_id, data_class_id):
+        if self.api_key is not None:
+            response = requests.post(
+                self.baseURL + "/api/dataModels/" + data_model_id +"/dataClasses/" + data_class_id + "/dataElements",
+                headers={'apiKey': self.api_key}, json=json_payload)
+        else:
+            response = requests.post(
+                self.baseURL + "/api/dataModels/" + data_model_id +"/dataClasses/" + data_class_id + "/dataElements",
+                    cookies=self.cookie, json=json_payload)
+        return response
 
