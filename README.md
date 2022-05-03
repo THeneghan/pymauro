@@ -7,3 +7,5 @@ https://maurodatamapper.github.io/resources/client/java/#binding-vs-non-binding-
 
 Details on the endpoints themselves can be found at:
 https://maurodatamapper.github.io/rest-api/introduction/#testing
+
+Last updated 03/05/2022
