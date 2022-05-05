@@ -1,8 +1,8 @@
 """pymauro is an opensource library that wraps the REST API endpoints of a Mauro Data Mapper instance into a Python
 library to allow easy, automated development.
 
-Currently, documentation is lacking but the functionality can be approximately described by viewing the Java methods
-as described in the documentation for the analogous Java Client library at
+Currently, documentation is lacking but the functionality can be approximately described by viewing the methods
+as described in the documentation for the analogous Client library at
 https://maurodatamapper.github.io/resources/client/java/#binding-vs-non-binding-clients
 
 Details on the endpoints themselves can be found at:
@@ -22,11 +22,12 @@ def test_my_url(url):
     """
 Takes the url (string) and appends /api/test.
 This new path is then sent a get request. The response is
-returned.
+returned. This function has not been proven to work - suspected endpoint mistake
 
-    :param url: String
+    :param url: The base url of the Mauro instance
     :return: :class:`Response` object
     """
+    print("This function has not been proven to work - suspected endpoint mistake")
     response = requests.get(url + "/api/test")
     return response
 
@@ -40,10 +41,7 @@ class BaseClient:
 
     The user must provide at least a username and password or an API key. A type error will return if the arguments
     provided do not abide by this rule. When possible the called method will use the API key over the session id created
-    by login via username/password to prevent session time outs.
-
-    All class attributes are designed to be non-public and immutable excluding API Key.
-    Password is name mangled to prevent accidental disclosure.
+    by login via username/password to prevent session time-outs.
 
 
     Attributes
@@ -59,40 +57,51 @@ class BaseClient:
 
     Methods
     -------
-    test_my_connection()
-        Executes a post request with username and password as json payload to the baseurl appended with
-        /api/authentication/login. The response is returned.
-    check_for_valid_session()
-        Executes a get request to the baseurl appended with /api/session/isAuthenticated
-        with the session ID in the cookies header. The response is returned.
-    logout()
-        A logout get request is sent to baseurl appended with /api/authentication/logout with the session ID in the
-        cookies header. The response is returned.
-    admin_check()
-        Get request to determine whether user is an admin. The response is returned.
+    test_my_connection
+    check_for_valid_session
+    logout
+    admin_check
+    list_api_keys
+    create_new_api_key
+    delete_api_key
+    enable_api_key
+    disable_api_key
+    refresh_api_key
+    list_folders
+    get_metadata
+    permissions
+    post_metadata
+    get_classifiers
+    get_data_classes
+    get_codesets
+    get_data_element
+    get_data_model
+    get_versioned_folder
+    build_versioned_folder
+    create_data_model
+    build_folder
+    create_new_data_class
+    update_data_class
+    create_data_element
+    method_constructor
 
-
-
-
-
-
+    Each method possesses its own docstring.
 
 
     """
 
-
     def __init__(self, baseurl, username=None, password=None, api_key=None):
-        self._baseURL = baseurl
-        self._username = username
-        self.__password = password
+        self._baseURL = baseurl  # Non-public to prevent accidental editing
+        self._username = username  # Non-public to prevent accidental editing
+        self.__password = password  # Name mangled to prevent accidental disclosure
         self.api_key = api_key
         if (self._username is None or self.__password is None) and self.api_key is None \
                 or self._username is not None and self.__password is None \
                 or self._username is None and self.__password is not None:
             raise TypeError("You must provide at a minimum: the username and password as a pairing or an API Key.")
         if self.api_key is not None:
-            self._headers = dict()
-            self._headers['apiKey'] = self.api_key
+            self.headers = dict()
+            self.headers['apiKey'] = self.api_key
         if self._username is not None and 'id' in self.test_my_connection().json().keys():
             self.cookie = self.test_my_connection().cookies
         else:
@@ -164,8 +173,6 @@ class BaseClient:
             response = requests.get(self.baseURL + "/api/session/isApplicationAdministration",
                                     cookies=self.cookie)
         return response
-
-
 
     def list_api_keys(self, catalogue_user_id=None):
         """
@@ -343,7 +350,7 @@ class BaseClient:
         as opposed to current user's default value.
 
         :param key_to_refresh: API key to refresh
-        :param days_until_expiry: int - Number of days until key expiry. Default value is 365.
+        :param days_until_expiry: int - Number of days until key expiry. Default value is 365
         :param catalogue_user_id: - (optional) A catalogue user id
         :return: :class:`Response' object
         """
@@ -399,11 +406,13 @@ class BaseClient:
 
     def get_metadata(self, catalogue_item_domain_type, catalogue_item_id, metadata_id=None):
         """
+        Get the metadata information on a catalogue item or metadata item within a catalogue id.
 
-        :param catalogue_item_domain_type:
-        :param catalogue_item_id:
-        :param metadata_id:
-        :return: :class:`Response' object
+        :param catalogue_item_domain_type: Must be one of "folders", "dataModels", "dataClasses", "dataTypes",
+         "terminologies", "terms" or "referenceDataModels".
+        :param catalogue_item_id: The id of the catalogue item.
+        :param metadata_id: - (optional) A catalogue user id.
+        :return: :class:`Response' object.
         """
         val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
                             "referenceDataModels"]
@@ -434,11 +443,13 @@ class BaseClient:
                     cookies=self.cookie)
             return response
 
-    def permissions(self, catalogue_item_domain_type, id_input):
+    def permissions(self, catalogue_item_domain_type, catalogue_item_id):
         """
+        Get the permissions of a catalogue item id
 
-        :param catalogue_item_domain_type:
-        :param id_input:
+        :param catalogue_item_domain_type: Must be one of "folders", "dataModels", "dataClasses",
+        "dataTypes", "terminologies", "terms" or "referenceDataModels"
+        :param catalogue_item_id: The catalogue item id
         :return: :class:`Response' object
         """
         val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
@@ -446,22 +457,26 @@ class BaseClient:
         if catalogue_item_domain_type not in val_domain_types:
             raise ValueError("catalogueItemDomainType must be in " + str(val_domain_types))
         if self.api_key is not None:
-            response = requests.get(self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(id_input) +
-                                    "/permissions", headers={'apiKey': self.api_key})
+            response = requests.get(self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" +
+                                    str(catalogue_item_id) + "/permissions",
+                                    headers={'apiKey': self.api_key})
             return response
         else:
-            response = requests.get(self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(id_input) +
-                                    "/permissions", cookies=self.cookie)
+            response = requests.get(
+                self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) +
+                "/permissions", cookies=self.cookie)
             return response
 
     def post_metadata(self, catalogue_item_domain_type, catalogue_item_id, namespace_inp, key_val, value_inp):
         """
+        Post metadata
 
-        :param catalogue_item_domain_type:
-        :param catalogue_item_id:
-        :param namespace_inp:
-        :param key_val:
-        :param value_inp:
+        :param catalogue_item_domain_type: Must be one of "folders", "dataModels", "dataClasses",
+        "dataTypes", "terminologies", "terms" or "referenceDataModels".
+        :param catalogue_item_id: The catalogue item id.
+        :param namespace_inp: The namespace
+        :param key_val: The key
+        :param value_inp: The value
         :return: :class:`Response' object
         """
         val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
@@ -482,9 +497,10 @@ class BaseClient:
 
     def get_classifiers(self, classifier_id=None, id_input=None):
         """
+        Get classifiers - paginated list or specific id
 
-        :param classifier_id:
-        :param id_input:
+        :param classifier_id: Parent classifier id
+        :param id_input: Child classifier id
         :return: :class:`Response' object
         """
         if self.api_key is not None:
@@ -525,10 +541,11 @@ class BaseClient:
 
     def get_data_classes(self, data_model_id, data_class_id=None, id_input=None):
         """
+        Get data classes - paginated list or specific id
 
-        :param data_model_id:
-        :param data_class_id:
-        :param id_input:
+        :param data_model_id: The data model id
+        :param data_class_id: The data class id
+        :param id_input: Specific data class id
         :return: :class:`Response' object
         """
         if self.api_key is not None:
@@ -573,9 +590,10 @@ class BaseClient:
 
     def get_codesets(self, folder_id=None, codeset_id=None):
         """
+        Get codesets - paginated list or specific id
 
-        :param folder_id:
-        :param codeset_id:
+        :param folder_id: The folder id
+        :param codeset_id: Specific codeset id
         :return: :class:`Response' object
         """
         if self.api_key is not None:
@@ -600,7 +618,6 @@ class BaseClient:
                 response = requests.get(
                     self.baseURL + "/api/folders/" + str(folder_id) + "/codeSets/",
                     cookies=self.cookie)
-
             else:
                 response = requests.get(
                     self.baseURL + "/api/codeSets/" + str(codeset_id),
@@ -609,10 +626,11 @@ class BaseClient:
 
     def get_data_element(self, data_model_id, data_class_id, id_input=None):
         """
+        Get data element - paginated list or specific id
 
-        :param data_model_id:
-        :param data_class_id:
-        :param id_input:
+        :param data_model_id: The data model id
+        :param data_class_id: The data class id
+        :param id_input: Specific data element id
         :return: :class:`Response' object
         """
         if self.api_key is not None:
@@ -641,9 +659,10 @@ class BaseClient:
 
     def get_data_model(self, folder_id=None, id_input=None):
         """
+        Get data model - paginated list or specific id
 
-        :param folder_id:
-        :param id_input:
+        :param folder_id: The folder id
+        :param id_input: Specific data model id
         :return: :class:`Response' object
         """
         if self.api_key is not None:
@@ -677,9 +696,10 @@ class BaseClient:
 
     def get_versioned_folders(self, folder_id=None, id_input=None):
         """
+        List versioned folders - paginated list or specific id
 
-        :param folder_id:
-        :param id_input:
+        :param folder_id: The folder id
+        :param id_input: Specific versioned folder id
         :return: :class:`Response' object
         """
         if self.api_key is not None:
@@ -713,8 +733,9 @@ class BaseClient:
 
     def build_versioned_folder(self, json_payload):
         """
+        Builds a versioned folder
 
-        :param json_payload:
+        :param json_payload: json data to send in the body of the :class: 'Request'
         :return: :class:`Response' object
         """
         if self.api_key is not None:
@@ -729,30 +750,30 @@ class BaseClient:
 
     def create_data_model(self, folder_id, json_payload):
         """
+        Creates a data model in the specified folder
 
-        Takes a folder ID and JSON payload to create a data model in the specified folder.
-        Returns the response
-
-        Example of json payload
-        payload={"folder":"ab12f37e-2bf7-314d-b9a0-5133279e66b7","author":"TomHeneghan","description":"InsertDescription",
-        "label":"MyLabel","organisation":"ONS","type":"Data Asset","classifiers":[]}
-
-        :param folder_id: String
-        :param json_payload: Python dictionary or JSON
+        :param folder_id: Folder id to create data model in
+        :param json_payload: json data to send in the body of the :class: 'Request'
         :return: :class:`Response' object
         """
         if self.api_key is not None:
             response = requests.post(
-                self.baseURL + "/api/folders/"+str(folder_id)+"/dataModels",
+                self.baseURL + "/api/folders/" + str(folder_id) + "/dataModels",
                 headers={'apiKey': self.api_key}, json=json_payload)
         else:
             response = requests.post(
-                self.baseURL + "/api/folders/"+str(folder_id)+"/dataModels",
+                self.baseURL + "/api/folders/" + str(folder_id) + "/dataModels",
                 cookies=self.cookie, json=json_payload)
         return response
 
-
     def build_folder(self, json_payload, folder_id=None):
+        """
+        Build a new folder.
+
+        :param json_payload: json data to send in the body of the :class: 'Request'
+        :param folder_id: - (optional) The folder id to build the new folder within
+        :return: :class:`Response' object
+        """
         if folder_id is None:
             if self.api_key is not None:
                 response = requests.post(
@@ -774,23 +795,24 @@ class BaseClient:
 
         return response
 
-
     def create_new_data_class(self, json_payload, data_model_id, data_class_id=None):
         """
+        Create a new data class
 
         :param json_payload: json data to send in the body of the :class: 'Request'
-        :param data_model_id: The data model id to which the class belongs
-        :param data_class_id:
+        :param data_model_id: The data model id to which the new class will belong
+        :param data_class_id: - (optional) The data class id to which the new class will belong
         :return: :class:`Response' object
         """
         if self.api_key is not None:
             if data_class_id is None:
                 response = requests.post(
-                    self.baseURL + "/api/dataModels/" + data_model_id +"/dataClasses",
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses",
                     headers={'apiKey': self.api_key}, json=json_payload)
             else:
                 response = requests.post(
-                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + data_class_id +"/dataClasses",
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/"
+                    + data_class_id + "/dataClasses",
                     headers={'apiKey': self.api_key}, json=json_payload)
         else:
             if data_class_id is None:
@@ -799,13 +821,12 @@ class BaseClient:
                     cookies=self.cookie, json=json_payload)
             else:
                 response = requests.post(
-                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + data_class_id + "/dataClasses",
-                   cookies=self.cookie, json=json_payload)
+                    self.baseURL + "/api/dataModels/" + data_model_id +
+                    "/dataClasses/" + data_class_id + "/dataClasses",
+                    cookies=self.cookie, json=json_payload)
         return response
 
-
-
-    def update_data_class(self, json_payload,data_model_id, data_class_id=None):
+    def update_data_class(self, json_payload, data_model_id, data_class_id=None):
         """
         Updates a data class
 
@@ -834,9 +855,7 @@ class BaseClient:
                     cookies=self.cookie, json=json_payload)
         return response
 
-
-
-    def create_data_element(self,json_payload, data_model_id, data_class_id):
+    def create_data_element(self, json_payload, data_model_id, data_class_id):
         """
         Creates a data element
 
@@ -847,29 +866,27 @@ class BaseClient:
         """
         if self.api_key is not None:
             response = requests.post(
-                self.baseURL + "/api/dataModels/" + data_model_id +"/dataClasses/" + data_class_id + "/dataElements",
+                self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + data_class_id + "/dataElements",
                 headers={'apiKey': self.api_key}, json=json_payload)
         else:
             response = requests.post(
-                self.baseURL + "/api/dataModels/" + data_model_id +"/dataClasses/" + data_class_id + "/dataElements",
-                    cookies=self.cookie, json=json_payload)
+                self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + data_class_id + "/dataElements",
+                cookies=self.cookie, json=json_payload)
         return response
 
-    def method_constructor(self, command, json_payload=None,*args):
+    def method_constructor(self, command, json_payload=None, *args):
         """
-        A generalised way of creating any endpoint. Any additional arguments provided will be appended to baseurl
-        allowing custom endpoints to be rapidly built.
+        A generalised way of creating any endpoint. Any additional arguments provided via args will be appended
+        to baseurl allowing custom endpoints to be rapidly built.
 
-        command is a string value and must be one of 'put', 'post', 'get' or 'delete'.
-
-        :param command: 'put', 'post', 'get' or 'delete'.
+        :param command: String value that must be one of 'put', 'post', 'get' or 'delete'
         :param json_payload: - (optional) json data to send in the body of the :class: 'Request'
-        :param args: - (optional)
+        :param args: - (optional) String to compose endpoints
         :return: :class:`Response' object
         """
         if command not in ['put', 'post', 'get', "delete"]:
-            raise ValueError("Must be put, post or get")
-        append_string=""
+            raise ValueError("Must be put, post, delete or get")
+        append_string = ""
         for vals in args:
             append_string = append_string + vals
         if self.api_key is not None:
@@ -919,4 +936,3 @@ class BaseClient:
     #             + str(metadata_id),
     #             cookies=self.cookie, json=json_payload)
     #         return response
-
