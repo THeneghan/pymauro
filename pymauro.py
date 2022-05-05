@@ -115,10 +115,6 @@ class BaseClient:
     def baseURL(self):
         return self._baseURL
 
-    @property
-    def password(self):
-        return self.__password
-
     def __repr__(self):
         return "Mauro Client Object"
 
@@ -131,7 +127,7 @@ class BaseClient:
         """
         if self.username is None:
             raise TypeError("You must provide a username and password to access this method")
-        json_payload = dict(username=self.username, password=self.password)
+        json_payload = dict(username=self.username, password=self.__password)
         response = requests.post(self.baseURL + "/api/authentication/login", json=json_payload)
         return response
 
