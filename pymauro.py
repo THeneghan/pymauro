@@ -916,23 +916,3 @@ class BaseClient:
                 response = requests.delete(self.baseURL + append_string,
                                            cookies=self.cookie, json=json_payload)
         return response
-
-    # Currently not working
-    # def edit_metadata(self,catalogue_item_domain_type, catalogue_item_id,metadata_id, id_value):
-    #     val_domain_types = ["folders", "dataModels", "dataClasses", "dataTypes", "terminologies", "terms",
-    #                         "referenceDataModels"]
-    #     if catalogue_item_domain_type not in val_domain_types:
-    #         raise ValueError("catalogueItemDomainType must be in " + str(val_domain_types))
-    #     json_payload = dict(metadata_id=id_value)
-    #     if self.api_key is not None:
-    #         response = requests.put(
-    #             self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata/"
-    #             + str(metadata_id),
-    #             headers={'apiKey': self.api_key}, json=json_payload)
-    #         return response
-    #     else:
-    #         response = requests.put(
-    #             self.baseURL + "/api/" + str(catalogue_item_domain_type) + "/" + str(catalogue_item_id) + "/metadata/"
-    #             + str(metadata_id),
-    #             cookies=self.cookie, json=json_payload)
-    #         return response
