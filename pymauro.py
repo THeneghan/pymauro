@@ -54,6 +54,9 @@ class BaseClient:
         Login password
     api_key: str
         The API key to authenticate
+    cookie: requests.cookies.RequestsCookieJar
+        Auto generated cookie to pass as argument for requests
+
 
     Methods
     -------
@@ -99,9 +102,6 @@ class BaseClient:
                 or self._username is not None and self.__password is None \
                 or self._username is None and self.__password is not None:
             raise TypeError("You must provide at a minimum: the username and password as a pairing or an API Key.")
-        if self.api_key is not None:
-            self.headers = dict()
-            self.headers['apiKey'] = self.api_key
         if self._username is not None and 'id' in self.test_my_connection().json().keys():
             self.cookie = self.test_my_connection().cookies
         else:
