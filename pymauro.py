@@ -80,9 +80,9 @@ class BaseClient:
     get_data_element
     get_data_model
     get_versioned_folder
-    build_versioned_folder
+    create_versioned_folder
     create_data_model
-    build_folder
+    create_folder
     create_new_data_class
     update_data_class
     create_data_element
@@ -727,7 +727,7 @@ class BaseClient:
                     cookies=self.cookie)
         return response
 
-    def build_versioned_folder(self, json_payload):
+    def create_versioned_folder(self, json_payload):
         """
         Builds a versioned folder
 
@@ -762,7 +762,7 @@ class BaseClient:
                 cookies=self.cookie, json=json_payload)
         return response
 
-    def build_folder(self, json_payload, folder_id=None):
+    def create_folder(self, json_payload, folder_id=None):
         """
         Build a new folder.
 
@@ -912,6 +912,79 @@ class BaseClient:
                 response = requests.delete(self.baseURL + append_string,
                                            cookies=self.cookie, json=json_payload)
         return response
+
+
+    def delete_folder(self, folder_id, parent_folder_id=None, permanent=False):
+        """
+
+        Parameters
+        ----------
+        folder_id
+        parent_folder_id
+        permanent
+
+        Returns
+        -------
+
+        """
+        admin_rights = self.admin_check().json()
+        if admin_rights['applicationAdministrationSession'] != True:
+            raise ValueError("Admin rights not detected")
+
+        if permanent == False:
+            bool_val= "false"
+        elif permanent == True:
+            bool_val= "true"
+        if self.api_key is not None:
+            if parent_folder_id is None:
+                response = requests.delete(self.baseURL + "/api/folders/" +
+                                        folder_id + "?permanent=" + bool_val,
+                                    headers={'apiKey': self.api_key})
+            else:
+                response = requests.delete(self.baseURL + "/api/folders/" +parent_folder_id +
+                                        "/folders/"+folder_id + "?permanent=" + bool_val,
+                                        headers={'apiKey': self.api_key})
+        else:
+            if parent_folder_id is None:
+                response = requests.delete(self.baseURL + "/api/folders/" +
+                                        folder_id + "?permanent=" + bool_val,
+                                    cookies=self.cookie)
+            else:
+                response = requests.delete(self.baseURL + "/api/folders/" +parent_folder_id +
+                                        "/folders/"+folder_id + "?permanent=" + bool_val,
+                                        cookies=self.cookie)
+        return response
+
+
+
+
+
+    def purge_instance(self):
+        """
+
+        Returns
+        -------
+
+        """
+        admin_rights=self.admin_check().json()
+        if admin_rights['applicationAdministrationSession'] != True:
+            raise ValueError("Admin rights not detected")
+        print("WARNING -THIS IS IRREVERSIBLE: Do you want to delete the entire contents of the Mauro instance (y/n)?")
+        del_input = input()
+        if del_input not in ["y","Y","Yes","yes","n","N","no","No"]:
+            return ValueError("Must be y/yes/Y/Yes or n/N/No/no")
+        if del_input in ["y","Y","Yes","yes"]:
+            key_list=self.list_folders().json().keys()
+            if 'items' in key_list:
+                parent_array=self.list_folders().json()['items']
+                for els in parent_array:
+                    folder_ids=(els['id'])
+                    self.delete_folder(folder_ids,permanent=True)
+            return "All folders deleted"
+
+        else:
+            return ("Purge cancelled")
+
 
     # Currently not working
     # def edit_metadata(self,catalogue_item_domain_type, catalogue_item_id,metadata_id, id_value):
