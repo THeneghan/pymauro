@@ -913,7 +913,6 @@ class BaseClient:
                                            cookies=self.cookie, json=json_payload)
         return response
 
-
     def delete_folder(self, folder_id, parent_folder_id=None, permanent=False):
         """
 
@@ -932,32 +931,28 @@ class BaseClient:
             raise ValueError("Admin rights not detected")
 
         if permanent == False:
-            bool_val= "false"
+            bool_val = "false"
         elif permanent == True:
-            bool_val= "true"
+            bool_val = "true"
         if self.api_key is not None:
             if parent_folder_id is None:
                 response = requests.delete(self.baseURL + "/api/folders/" +
-                                        folder_id + "?permanent=" + bool_val,
-                                    headers={'apiKey': self.api_key})
+                                           folder_id + "?permanent=" + bool_val,
+                                           headers={'apiKey': self.api_key})
             else:
-                response = requests.delete(self.baseURL + "/api/folders/" +parent_folder_id +
-                                        "/folders/"+folder_id + "?permanent=" + bool_val,
-                                        headers={'apiKey': self.api_key})
+                response = requests.delete(self.baseURL + "/api/folders/" + parent_folder_id +
+                                           "/folders/" + folder_id + "?permanent=" + bool_val,
+                                           headers={'apiKey': self.api_key})
         else:
             if parent_folder_id is None:
                 response = requests.delete(self.baseURL + "/api/folders/" +
-                                        folder_id + "?permanent=" + bool_val,
-                                    cookies=self.cookie)
+                                           folder_id + "?permanent=" + bool_val,
+                                           cookies=self.cookie)
             else:
-                response = requests.delete(self.baseURL + "/api/folders/" +parent_folder_id +
-                                        "/folders/"+folder_id + "?permanent=" + bool_val,
-                                        cookies=self.cookie)
+                response = requests.delete(self.baseURL + "/api/folders/" + parent_folder_id +
+                                           "/folders/" + folder_id + "?permanent=" + bool_val,
+                                           cookies=self.cookie)
         return response
-
-
-
-
 
     def purge_instance(self):
         """
@@ -966,24 +961,87 @@ class BaseClient:
         -------
 
         """
-        admin_rights=self.admin_check().json()
+        admin_rights = self.admin_check().json()
         if admin_rights['applicationAdministrationSession'] != True:
             raise ValueError("Admin rights not detected")
         print("WARNING -THIS IS IRREVERSIBLE: Do you want to delete the entire contents of the Mauro instance (y/n)?")
         del_input = input()
-        if del_input not in ["y","Y","Yes","yes","n","N","no","No"]:
+        if del_input not in ["y", "Y", "Yes", "yes", "n", "N", "no", "No"]:
             return ValueError("Must be y/yes/Y/Yes or n/N/No/no")
-        if del_input in ["y","Y","Yes","yes"]:
-            key_list=self.list_folders().json().keys()
+        if del_input in ["y", "Y", "Yes", "yes"]:
+            key_list = self.list_folders().json().keys()
             if 'items' in key_list:
-                parent_array=self.list_folders().json()['items']
+                parent_array = self.list_folders().json()['items']
                 for els in parent_array:
-                    folder_ids=(els['id'])
-                    self.delete_folder(folder_ids,permanent=True)
+                    folder_ids = (els['id'])
+                    self.delete_folder(folder_ids, permanent=True)
             return "All folders deleted"
 
         else:
             return ("Purge cancelled")
+
+    def create_data_type(self, data_model_id, json_payload):
+        if self.api_key is not None:
+            response = requests.post(
+                self.baseURL + "/api/dataModels/" + data_model_id + "/dataTypes",
+                headers={'apiKey': self.api_key}, json=json_payload)
+        else:
+            response = requests.post(
+                self.baseURL + "/api/dataModels/" + data_model_id + "/dataTypes",
+                cookies=self.cookie, json=json_payload)
+        return response
+
+
+    def create_data_profile(self, folder_id, json_payload):
+        """
+        Creates a data profile in the specified folder
+
+        :param folder_id: Folder id to create data model in
+        :param json_payload: json data to send in the body of the :class: 'Request'
+        :return: :class:`Response' object
+        """
+        if self.api_key is not None:
+            response = requests.post(
+                self.baseURL + "/api/folders/" + str(folder_id) +
+                "/dataModels?defaultDataTypeProvider=ProfileSpecificationDataTypeProvider",
+                headers={'apiKey': self.api_key}, json=json_payload)
+        else:
+            response = requests.post(
+                self.baseURL + "/api/folders/" + str(folder_id) +
+                "/dataModels?defaultDataTypeProvider=ProfileSpecificationDataTypeProvider",
+                cookies=self.cookie, json=json_payload)
+        return response
+
+
+    def add_data_profile_to_data_model(self, data_model_id, json_payload):
+        if self.api_key is not None:
+            response = requests.post(
+                self.baseURL + "/api/dataModels/" + str(data_model_id) +
+                "/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationProfileService",
+                headers={'apiKey': self.api_key}, json=json_payload)
+        else:
+            response = requests.post(
+                self.baseURL + "/api/dataModels/" + str(data_model_id) +
+                "/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationProfileService",
+                cookies=self.cookie, json=json_payload)
+        return response
+
+    def add_data_profile_to_data_element(self, data_element_id, json_payload):
+        if self.api_key is not None:
+            print(self.baseURL + "/api/dataElements/" + str(data_element_id) +
+                "/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationFieldProfileService")
+            print("http://localhost:8082/api/dataElements/22ff7b97-b452-4cef-b9bf-4833f5888dad/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationFieldProfileService")
+            response = requests.post(
+                self.baseURL + "/api/dataElements/" + str(data_element_id) +
+                "/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationFieldProfileService",
+                headers={'apiKey': self.api_key}, json=json_payload)
+        else:
+            response = requests.post(
+                self.baseURL + "/api/dataElements/" + str(data_element_id) +
+                "/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationFieldProfileService",
+                cookies=self.cookie, json=json_payload)
+        return response
+
 
 
     # Currently not working
