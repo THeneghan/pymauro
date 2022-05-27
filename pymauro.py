@@ -18,7 +18,7 @@ Functions:
 import requests
 
 
-def test_my_url(url):
+def test_my_url(url, **kwargs):
     """
 Takes the url (string) and appends /api/test.
 This new path is then sent a get request. The response is
@@ -28,7 +28,7 @@ returned. This function has not been proven to work - suspected endpoint mistake
     :return: :class:`Response` object
     """
     print("This function has not been proven to work - suspected endpoint mistake")
-    response = requests.get(url + "/api/test")
+    response = requests.get(url + "/api/test", **kwargs)
     return response
 
 
@@ -118,7 +118,7 @@ class BaseClient:
     def __repr__(self):
         return "Mauro Client Object"
 
-    def test_my_connection(self):
+    def test_my_connection(self, **kwargs):
         """
         Executes a post request with username and password as json payload to the baseurl appended with
         /api/authentication/login. The response is returned.
@@ -128,10 +128,10 @@ class BaseClient:
         if self.username is None:
             raise TypeError("You must provide a username and password to access this method")
         json_payload = dict(username=self.username, password=self.__password)
-        response = requests.post(self.baseURL + "/api/authentication/login", json=json_payload)
+        response = requests.post(self.baseURL + "/api/authentication/login", json=json_payload, **kwargs)
         return response
 
-    def check_for_valid_session(self):
+    def check_for_valid_session(self,**kwargs):
         """
         Executes a get request to the url + /api/session/isAuthenticated
         with the session ID in the cookies header.
@@ -141,10 +141,10 @@ class BaseClient:
         """
         if self.username is None:
             raise TypeError("You must provide a username and password to access this method")
-        response = requests.get(self.baseURL + "/api/session/isAuthenticated", cookies=self.cookie)
+        response = requests.get(self.baseURL + "/api/session/isAuthenticated", cookies=self.cookie, **kwargs)
         return response
 
-    def logout(self):
+    def logout(self, **kwargs):
         """
         A logout get request is sent to baseurl appended with /api/authentication/logout with the session ID in the
         cookies header. The response is returned.
@@ -153,10 +153,10 @@ class BaseClient:
         """
         if self.username is None:
             raise TypeError("You must provide a username and password to access this method")
-        response = requests.get(self.baseURL + "/api/authentication/logout", cookies=self.cookie)
+        response = requests.get(self.baseURL + "/api/authentication/logout", cookies=self.cookie, **kwargs)
         return response
 
-    def admin_check(self):
+    def admin_check(self, **kwargs):
         """
         Get request to determine whether user is an admin.
 
@@ -164,13 +164,13 @@ class BaseClient:
         """
         if self.api_key is not None:
             response = requests.get(self.baseURL + "/api/session/isApplicationAdministration",
-                                    headers={'apiKey': self.api_key})
+                                    headers={'apiKey': self.api_key}, **kwargs)
         else:
             response = requests.get(self.baseURL + "/api/session/isApplicationAdministration",
-                                    cookies=self.cookie)
+                                    cookies=self.cookie, **kwargs)
         return response
 
-    def list_api_keys(self, catalogue_user_id=None):
+    def list_api_keys(self, catalogue_user_id=None, **kwargs):
         """
         Lists api keys.
 
@@ -186,20 +186,20 @@ class BaseClient:
         elif self.api_key is None and catalogue_user_id is None:
             default_id = self.test_my_connection().json()['id']
             response = requests.get(self.baseURL + "/api/catalogueUsers/" + default_id + "/apiKeys",
-                                    cookies=self.cookie)
+                                    cookies=self.cookie, **kwargs)
         elif self.api_key is None and catalogue_user_id is not None:
             response = requests.get(self.baseURL + "/api/catalogueUsers/" + catalogue_user_id + "/apiKeys",
-                                    cookies=self.cookie)
+                                    cookies=self.cookie, **kwargs)
         elif self.api_key is not None and catalogue_user_id is None:
             default_id = self.test_my_connection().json()['id']
             response = requests.get(self.baseURL + "/api/catalogueUsers/" + default_id + "/apiKeys",
-                                    headers={'apiKey': self.api_key})
+                                    headers={'apiKey': self.api_key}, **kwargs)
         elif self.api_key is not None and catalogue_user_id is not None:
             response = requests.get(self.baseURL + "/api/catalogueUsers/" + catalogue_user_id + "/apiKeys",
-                                    headers={'apiKey': self.api_key})
+                                    headers={'apiKey': self.api_key}, **kwargs)
         return response
 
-    def create_new_api_key(self, key_name='My First Key', expiry=365, refreshable=True, catalogue_user_id=None):
+    def create_new_api_key(self, key_name='My First Key', expiry=365, refreshable=True, catalogue_user_id=None, **kwargs):
         """
         Creates a new API key depending on arguments provided,
 
@@ -220,23 +220,23 @@ class BaseClient:
             if catalogue_user_id is None:
                 default_id = self.test_my_connection().json()['id']
                 response = requests.post(self.baseURL + "/api/catalogueUsers/" + default_id + "/apiKeys",
-                                         headers={'apiKey': self.api_key}, json=json_payload)
+                                         headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
             else:
                 response = requests.post(self.baseURL + "/api/catalogueUsers/" + catalogue_user_id + "/apiKeys",
-                                         headers={'apiKey': self.api_key}, json=json_payload)
+                                         headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
         else:
             if catalogue_user_id is None:
                 json_payload = dict(name=key_name, expiresInDays=expiry, refreshable=refreshable)
                 default_id = self.test_my_connection().json()['id']
                 response = requests.post(self.baseURL + "/api/catalogueUsers/" + default_id + "/apiKeys",
-                                         cookies=self.cookie, json=json_payload)
+                                         cookies=self.cookie, json=json_payload, **kwargs)
             else:
                 json_payload = dict(name=key_name, expiresInDays=expiry, refreshable=refreshable)
                 response = requests.post(self.baseURL + "/api/catalogueUsers/" + catalogue_user_id + "/apiKeys",
-                                         cookies=self.cookie, json=json_payload)
+                                         cookies=self.cookie, json=json_payload, **kwargs)
         return response
 
-    def delete_api_key(self, key_to_delete, catalogue_user_id=None):
+    def delete_api_key(self, key_to_delete, catalogue_user_id=None, **kwargs):
         """
         Deletes API key.
 
@@ -255,11 +255,11 @@ class BaseClient:
                 default_id = self.test_my_connection().json()['id']
                 response = requests.delete(
                     self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/" + str(key_to_delete),
-                    headers={'apiKey': self.api_key})
+                    headers={'apiKey': self.api_key}, **kwargs)
             else:
                 response = requests.delete(
                     self.baseURL + "/api/catalogueUsers/" + catalogue_user_id + "/apiKeys/" + str(key_to_delete),
-                    headers={'apiKey': self.api_key})
+                    headers={'apiKey': self.api_key}, **kwargs)
             return response
         else:
             if catalogue_user_id is None:
@@ -267,14 +267,14 @@ class BaseClient:
                 print(default_id)
                 response = requests.delete(
                     self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/" + str(key_to_delete),
-                    cookies=self.cookie)
+                    cookies=self.cookie, **kwargs)
             else:
                 response = requests.delete(
                     self.baseURL + "/api/catalogueUsers/" + catalogue_user_id + "/apiKeys/" + str(key_to_delete),
-                    cookies=self.cookie)
+                    cookies=self.cookie, **kwargs)
             return response
 
-    def disable_api_key(self, key_to_disable, catalogue_user_id=None):
+    def disable_api_key(self, key_to_disable, catalogue_user_id=None, **kwargs):
         """
         Disables API key
 
@@ -292,22 +292,22 @@ class BaseClient:
             if catalogue_user_id is None:
                 default_id = self.test_my_connection().json()['id']
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/"
-                                        + str(key_to_disable) + "/disable", headers={'apiKey': self.api_key})
+                                        + str(key_to_disable) + "/disable", headers={'apiKey': self.api_key}, **kwargs)
             else:
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + catalogue_user_id + "/apiKeys/"
-                                        + str(key_to_disable) + "/disable", headers={'apiKey': self.api_key})
+                                        + str(key_to_disable) + "/disable", headers={'apiKey': self.api_key}, **kwargs)
             return response
         else:
             if catalogue_user_id is None:
                 default_id = self.test_my_connection().json()['id']
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/"
-                                        + str(key_to_disable) + "/disable", cookies=self.cookie)
+                                        + str(key_to_disable) + "/disable", cookies=self.cookie, **kwargs)
             else:
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + catalogue_user_id + "/apiKeys/"
-                                        + str(key_to_disable) + "/disable", cookies=self.cookie)
+                                        + str(key_to_disable) + "/disable", cookies=self.cookie, **kwargs)
             return response
 
-    def enable_api_key(self, key_to_enable, catalogue_user_id=None):
+    def enable_api_key(self, key_to_enable, catalogue_user_id=None, **kwargs):
         """
         Disables API key
 
@@ -324,18 +324,18 @@ class BaseClient:
             if catalogue_user_id is None:
                 default_id = self.test_my_connection().json()['id']
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + default_id + "/apiKeys/"
-                                        + str(key_to_enable) + "/enable", headers={'apiKey': self.api_key})
+                                        + str(key_to_enable) + "/enable", headers={'apiKey': self.api_key}, **kwargs)
             else:
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + catalogue_user_id + "/apiKeys/" +
-                                        str(key_to_enable) + "/enable", headers={'apiKey': self.api_key})
+                                        str(key_to_enable) + "/enable", headers={'apiKey': self.api_key}, **kwargs)
         else:
             if catalogue_user_id is None:
                 default_id = self.test_my_connection().json()['id']
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + str(default_id) + "/apiKeys/"
-                                        + str(key_to_enable) + "/enable", cookies=self.cookie)
+                                        + str(key_to_enable) + "/enable", cookies=self.cookie, **kwargs)
             else:
                 response = requests.put(self.baseURL + "/api/catalogueUsers/" + catalogue_user_id + "/apiKeys/" +
-                                        str(key_to_enable) + "/enable", cookies=self.cookie)
+                                        str(key_to_enable) + "/enable", cookies=self.cookie, **kwargs)
         return response
 
     def refresh_api_key(self, key_to_refresh, days_until_expiry=365, catalogue_user_id=None):
@@ -822,7 +822,7 @@ class BaseClient:
                     cookies=self.cookie, json=json_payload)
         return response
 
-    def update_data_class(self, json_payload, data_model_id, data_class_id=None):
+    def update_data_class(self, json_payload, data_model_id, data_class_id=None, **kwargs):
         """
         Updates a data class
 
@@ -835,23 +835,23 @@ class BaseClient:
             if data_class_id is None:
                 response = requests.put(
                     self.baseURL + "/api/dataModels/" + data_model_id,
-                    headers={'apiKey': self.api_key}, json=json_payload)
+                    headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
             else:
                 response = requests.put(
                     self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + data_class_id,
-                    headers={'apiKey': self.api_key}, json=json_payload)
+                    headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
         else:
             if data_class_id is None:
                 response = requests.put(
                     self.baseURL + "/api/dataModels/" + data_model_id,
-                    cookies=self.cookie, json=json_payload)
+                    cookies=self.cookie, json=json_payload, **kwargs)
             else:
                 response = requests.put(
                     self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + data_class_id,
-                    cookies=self.cookie, json=json_payload)
+                    cookies=self.cookie, json=json_payload, **kwargs)
         return response
 
-    def create_data_element(self, json_payload, data_model_id, data_class_id):
+    def create_data_element(self, json_payload, data_model_id, data_class_id, **kwargs):
         """
         Creates a data element
 
@@ -863,14 +863,14 @@ class BaseClient:
         if self.api_key is not None:
             response = requests.post(
                 self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + data_class_id + "/dataElements",
-                headers={'apiKey': self.api_key}, json=json_payload)
+                headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
         else:
             response = requests.post(
                 self.baseURL + "/api/dataModels/" + data_model_id + "/dataClasses/" + data_class_id + "/dataElements",
-                cookies=self.cookie, json=json_payload)
+                cookies=self.cookie, json=json_payload, **kwargs)
         return response
 
-    def method_constructor(self, command, json_payload=None, *args):
+    def method_constructor(self, command, json_payload=None, *args, **kwargs):
         """
         A generalised way of creating any endpoint. Any additional arguments provided via args will be appended
         to baseurl allowing custom endpoints to be rapidly built.
@@ -888,32 +888,32 @@ class BaseClient:
         if self.api_key is not None:
             if command == "put":
                 response = requests.put(self.baseURL + append_string,
-                                        headers={'apiKey': self.api_key}, json=json_payload)
+                                        headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
             elif command == "post":
                 response = requests.post(self.baseURL + append_string,
-                                         headers={'apiKey': self.api_key}, json=json_payload)
+                                         headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
             elif command == "get":
                 response = requests.get(self.baseURL + append_string,
-                                        headers={'apiKey': self.api_key}, json=json_payload)
+                                        headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
             elif command == "delete":
                 response = requests.delete(self.baseURL + append_string,
-                                           headers={'apiKey': self.api_key}, json=json_payload)
+                                           headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
         else:
             if command == "put":
                 response = requests.put(self.baseURL + append_string,
-                                        cookies=self.cookie, json=json_payload)
+                                        cookies=self.cookie, json=json_payload, **kwargs)
             elif command == "post":
                 response = requests.post(self.baseURL + append_string,
-                                         cookies=self.cookie, json=json_payload)
+                                         cookies=self.cookie, json=json_payload, **kwargs)
             elif command == "get":
                 response = requests.get(self.baseURL + append_string,
-                                        cookies=self.cookie, json=json_payload)
+                                        cookies=self.cookie, json=json_payload, **kwargs)
             elif command == "delete":
                 response = requests.delete(self.baseURL + append_string,
-                                           cookies=self.cookie, json=json_payload)
+                                           cookies=self.cookie, json=json_payload, **kwargs)
         return response
 
-    def delete_folder(self, folder_id, parent_folder_id=None, permanent=False):
+    def delete_folder(self, folder_id, parent_folder_id=None, permanent=False, **kwargs):
         """
 
         Parameters
@@ -938,20 +938,20 @@ class BaseClient:
             if parent_folder_id is None:
                 response = requests.delete(self.baseURL + "/api/folders/" +
                                            folder_id + "?permanent=" + bool_val,
-                                           headers={'apiKey': self.api_key})
+                                           headers={'apiKey': self.api_key},**kwargs)
             else:
                 response = requests.delete(self.baseURL + "/api/folders/" + parent_folder_id +
                                            "/folders/" + folder_id + "?permanent=" + bool_val,
-                                           headers={'apiKey': self.api_key})
+                                           headers={'apiKey': self.api_key},**kwargs)
         else:
             if parent_folder_id is None:
                 response = requests.delete(self.baseURL + "/api/folders/" +
                                            folder_id + "?permanent=" + bool_val,
-                                           cookies=self.cookie)
+                                           cookies=self.cookie,**kwargs)
             else:
                 response = requests.delete(self.baseURL + "/api/folders/" + parent_folder_id +
                                            "/folders/" + folder_id + "?permanent=" + bool_val,
-                                           cookies=self.cookie)
+                                           cookies=self.cookie,**kwargs)
         return response
 
     def purge_instance(self):
@@ -980,19 +980,19 @@ class BaseClient:
         else:
             return ("Purge cancelled")
 
-    def create_data_type(self, data_model_id, json_payload):
+    def create_data_type(self, data_model_id, json_payload, **kwargs):
         if self.api_key is not None:
             response = requests.post(
                 self.baseURL + "/api/dataModels/" + data_model_id + "/dataTypes",
-                headers={'apiKey': self.api_key}, json=json_payload)
+                headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
         else:
             response = requests.post(
                 self.baseURL + "/api/dataModels/" + data_model_id + "/dataTypes",
-                cookies=self.cookie, json=json_payload)
+                cookies=self.cookie, json=json_payload, **kwargs)
         return response
 
 
-    def create_data_profile(self, folder_id, json_payload):
+    def create_data_profile(self, folder_id, json_payload, **kwargs):
         """
         Creates a data profile in the specified folder
 
@@ -1004,29 +1004,29 @@ class BaseClient:
             response = requests.post(
                 self.baseURL + "/api/folders/" + str(folder_id) +
                 "/dataModels?defaultDataTypeProvider=ProfileSpecificationDataTypeProvider",
-                headers={'apiKey': self.api_key}, json=json_payload)
+                headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
         else:
             response = requests.post(
                 self.baseURL + "/api/folders/" + str(folder_id) +
                 "/dataModels?defaultDataTypeProvider=ProfileSpecificationDataTypeProvider",
-                cookies=self.cookie, json=json_payload)
+                cookies=self.cookie, json=json_payload, **kwargs)
         return response
 
 
-    def add_data_profile_to_data_model(self, data_model_id, json_payload):
+    def add_data_profile_to_data_model(self, data_model_id, json_payload, **kwargs):
         if self.api_key is not None:
             response = requests.post(
                 self.baseURL + "/api/dataModels/" + str(data_model_id) +
                 "/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationProfileService",
-                headers={'apiKey': self.api_key}, json=json_payload)
+                headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
         else:
             response = requests.post(
                 self.baseURL + "/api/dataModels/" + str(data_model_id) +
                 "/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationProfileService",
-                cookies=self.cookie, json=json_payload)
+                cookies=self.cookie, json=json_payload, **kwargs)
         return response
 
-    def add_data_profile_to_data_element(self, data_element_id, json_payload):
+    def add_data_profile_to_data_element(self, data_element_id, json_payload, **kwargs):
         if self.api_key is not None:
             print(self.baseURL + "/api/dataElements/" + str(data_element_id) +
                 "/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationFieldProfileService")
@@ -1034,12 +1034,12 @@ class BaseClient:
             response = requests.post(
                 self.baseURL + "/api/dataElements/" + str(data_element_id) +
                 "/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationFieldProfileService",
-                headers={'apiKey': self.api_key}, json=json_payload)
+                headers={'apiKey': self.api_key}, json=json_payload, **kwargs)
         else:
             response = requests.post(
                 self.baseURL + "/api/dataElements/" + str(data_element_id) +
                 "/profile/uk.ac.ox.softeng.maurodatamapper.profile/ProfileSpecificationFieldProfileService",
-                cookies=self.cookie, json=json_payload)
+                cookies=self.cookie, json=json_payload, **kwargs)
         return response
 
 
