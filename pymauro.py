@@ -16,6 +16,7 @@ Functions:
 
 """
 import requests
+import json_examples
 
 
 def test_my_url(url, **kwargs):
@@ -1042,6 +1043,40 @@ class BaseClient:
                 cookies=self.cookie, json=json_payload, **kwargs)
         return response
 
+    def populate_folder_with_data_asset_models(self,data_model_list, folder_id, type='Data Asset',classifiers=None,
+                    description=None, author=None, organisation=None, return_json=False):
+        log_list=[]
+        for model in data_model_list:
+            json_package= json_examples.data_asset_json(folder_id,model,type=type,classifiers=classifiers,
+                    description=description, author=author, organisation=organisation, return_json=return_json)
+            hit=self.create_data_model(folder_id,json_package)
+            log_list.append(hit)
+        return log_list
+
+    def populate_item_with_data_classes(self,data_class_list,data_model_id, data_class_id=None):
+        for cls in data_class_list:
+            json_payload=json_examples.data_class_json(cls)
+            self.create_new_data_class(json_payload,data_model_id,data_class_id)
+
+
+    def populate_data_class_with_elements(self, elements_list,data_model_id, data_class_id, datatype=None, domainType="DataElement", description=None, classifiers=None,
+                      metadata=None,
+                      minMultiplicity=None, maxMultiplicity=None, return_json=False):
+
+        for els in elements_list:
+            print(self.create_data_element(json_examples.data_element_json(els,datatype=datatype,domainType="DataElement",description=description, classifiers=classifiers,
+                      metadata=metadata,
+                      minMultiplicity=minMultiplicity, maxMultiplicity=maxMultiplicity, return_json=return_json),data_model_id,data_class_id).json())
+
+
+    def add_profile_to_all_class_data_elements(self, data_model_id, data_class_id):
+        items=self.get_data_element(data_model_id,data_class_id).json()['items']
+        for item in items:
+            element_id=item['id']
+            element_label=item['label']
+            print(element_id, element_label)
+            json_payload = json_examples.add_profile_to_data_element_json(element_id,element_label)
+            self.add_data_profile_to_data_element(element_id,json_payload)
 
 
     # Currently not working

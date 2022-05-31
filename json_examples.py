@@ -3,6 +3,7 @@ This doc lists commonly required JSON formats and contains functions that will g
 By default, the functions return python dictionaries as opposed to JSON unless return_json is set to true,
 This is because python dictionaries are handled in the pymauro methods as the json argument.
 """
+
 import json
 
 
@@ -153,8 +154,8 @@ def add_profile_to_data_model_json(metadata_namespace, data_model_id, data_model
 def add_profile_to_data_element_json(data_element_id, data_element_label, return_json=False):
     dict_form = {'sections':
           [{'name': 'Profile Specification', 'description': 'The details necessary for this Data Element to define a field for a dynamic profile.', 'fields':
-        [{'fieldName': 'Metadata Property Name', 'metadataPropertyName': 'metadataPropertyName', 'description': 'The key under which this property of this profile will be stored', 'maxMultiplicity': 1, 'minMultiplicity': 1, 'allowedValues': None, 'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None, 'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True, 'currentValue': '123456'},
-        {'fieldName': 'Default Value', 'metadataPropertyName': 'defaultValue', 'description': 'The default value that will be offered for this property', 'maxMultiplicity': 1, 'minMultiplicity': 0, 'allowedValues': None, 'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None, 'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True, 'currentValue': 'BINGO'},
+        [{'fieldName': 'Metadata Property Name', 'metadataPropertyName': 'metadataPropertyName', 'description': 'The key under which this property of this profile will be stored', 'maxMultiplicity': 1, 'minMultiplicity': 1, 'allowedValues': None, 'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None, 'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True, 'currentValue': ''},
+        {'fieldName': 'Default Value', 'metadataPropertyName': 'defaultValue', 'description': 'The default value that will be offered for this property', 'maxMultiplicity': 1, 'minMultiplicity': 0, 'allowedValues': None, 'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None, 'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True, 'currentValue': ''},
         {'fieldName': 'Regular expression', 'metadataPropertyName': 'regularExpression', 'description': 'A regular expression that may be used to validate string fields', 'maxMultiplicity': 1, 'minMultiplicity': 0, 'allowedValues': None, 'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None, 'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True, 'currentValue': ''},
         {'fieldName': 'May be edited after finalisation', 'metadataPropertyName': 'editableAfterFinalisation', 'description': 'If the owning model is editable after finalisation, determines whether this field may be edited after the owning model has been finalised', 'maxMultiplicity': 1, 'minMultiplicity': 1, 'allowedValues': None, 'regularExpression': None, 'dataType': 'boolean', 'derived': False, 'derivedFrom': None, 'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True, 'currentValue': 'true'}]}],
            'id': data_element_id, 'label': data_element_label, 'domainType': 'DataElement', 'namespace': 'uk.ac.ox.softeng.maurodatamapper.profile', 'name': 'ProfileSpecificationFieldProfileService'}
