@@ -66,13 +66,13 @@ def data_model_json(folder_id, label, type='Data Standard', classifiers=None,
     else:
         return dict_form
 
-def data_class_json(label, domainType="DataClass", classifiers=None, metadata=None,
+def data_class_json(label, domainType="DataClass", description=None, classifiers=None, metadata=None,
                     minMultiplicity=None, maxMultiplicity=None, return_json=False):
     if classifiers is None:
         classifiers = []
     if metadata is None:
         metadata = []
-    dict_form= {"domainType": domainType, "label": label, "classifiers": classifiers,
+    dict_form= {"domainType": domainType, "label": label, "classifiers": classifiers, "description":description,
                 "metadata": metadata, "minMultiplicity": minMultiplicity, "maxMultiplicity": maxMultiplicity}
     json_form = json.dumps(dict_form)
     if return_json:
@@ -150,6 +150,7 @@ def add_profile_to_data_model_json(metadata_namespace, data_model_id, data_model
         return json_form
     else:
         return dict_form
+
 
 def add_profile_to_data_element_json(data_element_id, data_element_label, return_json=False):
     dict_form = {'sections':

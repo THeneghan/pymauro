@@ -377,7 +377,7 @@ class BaseClient:
                                         cookies=self.cookie)
             return response
 
-    def list_folders(self, offset=0, max_limit=10, show_all=False):
+    def list_folders(self, folder_id=None, specific_id=None, offset=0, max_limit=10, show_all=False):
         """
         Lists the folders present in a Mauro instance.
 
@@ -386,19 +386,56 @@ class BaseClient:
         :param show_all: bool - show all folders (overrides max and offset limit). Default value = False
         :return: :class:`Response' object
         """
-        if self.api_key is not None:
-            if not show_all:
-                response = requests.get(self.baseURL + "/api/folders?offset=" + str(offset) + "&max=" + str(max_limit),
-                                        headers={'apiKey': self.api_key})
-            else:
-                response = requests.get(self.baseURL + "/api/folders?all=true", headers={'apiKey': self.api_key})
+        if folder_id is None and specific_id is None:
+            if self.api_key is not None:
+                if not show_all:
+                    response = requests.get(self.baseURL + "/api/folders?offset=" + str(offset) + "&max=" + str(max_limit),
+                                            headers={'apiKey': self.api_key})
+                else:
+                    response = requests.get(self.baseURL + "/api/folders?all=true", headers={'apiKey': self.api_key})
 
-        else:
-            if not show_all:
-                response = requests.get(self.baseURL + "/api/folders?offset=" + str(offset) + "&max=" + str(max_limit),
-                                        cookies=self.cookie)
             else:
-                response = requests.get(self.baseURL + "/api/folders?all=true", cookies=self.cookie)
+                if not show_all:
+                    response = requests.get(self.baseURL + "/api/folders?offset=" + str(offset) + "&max=" + str(max_limit),
+                                            cookies=self.cookie)
+                else:
+                    response = requests.get(self.baseURL + "/api/folders?all=true", cookies=self.cookie)
+        elif specific_id is None:
+            if self.api_key is not None:
+                if not show_all:
+                    response = requests.get(
+                        self.baseURL + "/api/folders/" + folder_id +"/folders?offset=" + str(offset) + "&max=" + str(max_limit),
+                        headers={'apiKey': self.api_key})
+                else:
+                    response = requests.get(self.baseURL + "/api/folders/" +folder_id+"/folders?all=true", headers={'apiKey': self.api_key})
+
+            else:
+                if not show_all:
+                    response = requests.get(
+                        self.baseURL + "/api/folders" +folder_id+"/folders/?offset=" + str(offset) + "&max=" + str(max_limit),
+                        cookies=self.cookie)
+
+        elif folder_id is None:
+            if self.api_key is not None:
+                    response = requests.get(
+                        self.baseURL + "/api/folders/" + specific_id,
+                        headers={'apiKey': self.api_key})
+
+            else:
+                    response = requests.get(
+                        self.baseURL + "/api/folders/" +folder_id,
+                        cookies=self.cookie)
+        else:
+            if self.api_key is not None:
+                    response = requests.get(
+                        self.baseURL + "/api/folders/" + folder_id + "/folders/"+specific_id,
+                        headers={'apiKey': self.api_key})
+
+            else:
+                    response = requests.get(
+                        self.baseURL + "/api/folders/" + folder_id + "/folders/"+specific_id,
+                        cookies=self.cookie)
+
         return response
 
     def get_metadata(self, catalogue_item_domain_type, catalogue_item_id, metadata_id=None):
@@ -955,6 +992,35 @@ class BaseClient:
                                            cookies=self.cookie,**kwargs)
         return response
 
+    def delete_data_model(self, data_model_id, permanent=False, **kwargs):
+        """
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+
+        """
+        admin_rights = self.admin_check().json()
+        if admin_rights['applicationAdministrationSession'] != True:
+            raise ValueError("Admin rights not detected")
+
+        if permanent == False:
+            bool_val = "false"
+        elif permanent == True:
+            bool_val = "true"
+        if self.api_key is not None:
+                response = requests.delete(self.baseURL + "/api/dataModels/" + data_model_id +
+                                           "?permanent=" + bool_val,
+                                           headers={'apiKey': self.api_key},**kwargs)
+        else:
+            response = requests.delete(self.baseURL + "/api/dataModels/" + data_model_id +
+                                       "?permanent=" + bool_val,
+                                        cookies=self.cookie,**kwargs)
+        return response
+
     def purge_instance(self):
         """
 
@@ -976,10 +1042,42 @@ class BaseClient:
                 for els in parent_array:
                     folder_ids = (els['id'])
                     self.delete_folder(folder_ids, permanent=True)
-            return "All folders deleted"
+                return "All folders deleted"
+            else:
+                return ("Purge not possible")
 
         else:
             return ("Purge cancelled")
+
+    def purge_folder(self, folder_id):
+        """
+
+        Returns
+        -------
+
+        """
+        admin_rights = self.admin_check().json()
+        if admin_rights['applicationAdministrationSession'] != True:
+            raise ValueError("Admin rights not detected")
+        print("WARNING: Do you want to delete the entire contents of this folder (y/n)?")
+        del_input = input()
+        if del_input not in ["y", "Y", "Yes", "yes", "n", "N", "no", "No"]:
+            return ValueError("Must be y/yes/Y/Yes or n/N/No/no")
+        if del_input in ["y", "Y", "Yes", "yes"]:
+            key_list1 = self.get_data_model(folder_id).json().keys()
+            key_list2 = self.list_folders(folder_id).json().keys()
+            if 'items' in key_list1:
+                parent_array_data_models = self.get_data_model(folder_id).json()['items']
+                for els in parent_array_data_models:
+                     data_model_ids = (els['id'])
+                     self.delete_data_model(data_model_ids, permanent=True)
+            if 'items' in key_list2:
+                parent_array_folders= self.list_folders(folder_id).json()['items']
+                for els in parent_array_folders:
+                    folder_ids = (els['id'])
+                    self.delete_folder(folder_ids, permanent=True)
+        else:
+             return ("Purge cancelled")
 
     def create_data_type(self, data_model_id, json_payload, **kwargs):
         if self.api_key is not None:
@@ -991,6 +1089,38 @@ class BaseClient:
                 self.baseURL + "/api/dataModels/" + data_model_id + "/dataTypes",
                 cookies=self.cookie, json=json_payload, **kwargs)
         return response
+
+
+    def get_data_types(self, data_model_id=None, specific_id=None, **kwargs):
+        if data_model_id is None:
+            if self.api_key is not None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/defaultDataTypeProviders",
+                    headers={'apiKey': self.api_key}, **kwargs)
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/defaultDataTypeProviders",
+                    cookies=self.cookie, **kwargs)
+        elif specific_id is None:
+            if self.api_key is not None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + data_model_id +"/dataTypes",
+                    headers={'apiKey': self.api_key}, **kwargs)
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + data_model_id +"/dataTypes",
+                    cookies=self.cookie, **kwargs)
+        else:
+            if self.api_key is not None:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataTypes/" + specific_id ,
+                    headers={'apiKey': self.api_key}, **kwargs)
+            else:
+                response = requests.get(
+                    self.baseURL + "/api/dataModels/" + data_model_id + "/dataTypes/" + specific_id,
+                    cookies=self.cookie, **kwargs)
+        return response
+
 
 
     def create_data_profile(self, folder_id, json_payload, **kwargs):
@@ -1077,6 +1207,74 @@ class BaseClient:
             print(element_id, element_label)
             json_payload = json_examples.add_profile_to_data_element_json(element_id,element_label)
             self.add_data_profile_to_data_element(element_id,json_payload)
+
+    def create_profiles_from_erwin_json(self, erwin_json, folder_id):
+        generated_model_ids=[]
+        generated_class_ids=[]
+        generated_element_ids=[]
+        model_class_elements={}
+        profile_list=[]
+        for profile_names in erwin_json:
+             profile_list.append(profile_names)
+             new_data_model=self.create_data_profile(folder_id,json_examples.data_model_json(folder_id,profile_names,
+                                                                                             description="Profile for " + profile_names)).json()['id']
+             generated_model_ids.append(new_data_model)
+             new_data_class=self.create_new_data_class(data_model_id=new_data_model,
+                                        json_payload=json_examples.data_class_json(str(profile_names+" properties"),
+                                                                                   description=profile_names +" technical properties")).json()['id']
+             generated_class_ids.append(new_data_class)
+             model_class_elements_key=(new_data_model,new_data_class)
+             model_class_elements[model_class_elements_key]=erwin_json[profile_names]
+        for keys in model_class_elements:
+            data_types=self.get_data_types(data_model_id=keys[0]).json()['items']
+            for types in data_types:
+                if types['label']=='string':
+                    for vals in model_class_elements[keys]:
+                        generated_element_ids.append(self.create_data_element(json_examples.data_element_json(vals['Name'],datatype={"id":types['id']}, description=vals['Definition']),keys[0],keys[1]).json())
+        counter=0
+        for ids in generated_model_ids:
+            self.add_data_profile_to_data_model(ids,json_examples.add_profile_to_data_model_json("",ids,profile_list[counter]))
+            counter=counter+1
+        for ids in generated_element_ids:
+            print(ids)
+            self.add_data_profile_to_data_element(ids['id'],json_examples.add_profile_to_data_element_json(ids['id'],ids['label']))
+
+    def list_all_profile_providers(self, **kwargs):
+        if self.api_key is not None:
+            response = requests.get(self.baseURL + "/api/profiles/providers",
+                                    headers={'apiKey': self.api_key}, **kwargs)
+        else:
+            response = requests.get(self.baseURL + "/api/profiles/providers",
+                                    cookies=self.cookie, **kwargs)
+        return response
+
+    def list_all_dynamic_profile_providers(self, **kwargs):
+        if self.api_key is not None:
+            response = requests.get(self.baseURL + "/api/profiles/providers/dynamic",
+                                    headers={'apiKey': self.api_key}, **kwargs)
+        else:
+            response = requests.get(self.baseURL + "/api/profiles/providers/dynamic",
+                                    cookies=self.cookie, **kwargs)
+        return response
+
+    def list_used_profiles_for_profiled_object(self,**kwargs):
+        if self.api_key is not None:
+            response = requests.get(self.baseURL + "/api/profiles/providers/dynamic",
+                                    headers={'apiKey': self.api_key}, **kwargs)
+        else:
+            response = requests.get(self.baseURL + "/api/profiles/providers/dynamic",
+                                    cookies=self.cookie, **kwargs)
+        return response
+
+    def list_profiles_used_by_data_class(self, data_class_id, **kwargs):
+        if self.api_key is not None:
+            response = requests.get(self.baseURL + "/api/dataClasses/" + data_class_id+"/profiles/used",
+                                    headers={'apiKey': self.api_key}, **kwargs)
+        else:
+            response = requests.get(self.baseURL + "/api/dataClasses/" + data_class_id+"/profiles/used",
+                                    cookies=self.cookie, **kwargs)
+        return response
+
 
 
     # Currently not working
