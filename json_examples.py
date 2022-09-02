@@ -5,21 +5,21 @@ This is because python dictionaries are handled in the pymauro methods as the js
 """
 
 import json
+import xml.etree.ElementTree as et
 
 
 def versioned_folder_json(label, return_json=False):
-    dict_form= {"label": label}
-    json_form=json.dumps(dict_form)
+    dict_form = {"label": label}
+    json_form = json.dumps(dict_form)
     if return_json:
         return json_form
     else:
         return dict_form
 
 
-
 def standard_folder_json(label, return_json=False):
-    dict_form= {"label": label}
-    json_form=json.dumps(dict_form)
+    dict_form = {"label": label}
+    json_form = json.dumps(dict_form)
     if return_json:
         return json_form
     else:
@@ -39,12 +39,13 @@ def data_asset_json(folder_id, label, type='Data Asset', classifiers=None,
     if organisation is None:
         organisation = ""
     dict_form = {"folder": folder_id, "label": label, "description": description,
-            "author": author, "organisation": organisation, "type": type, "classifiers": classifiers}
+                 "author": author, "organisation": organisation, "type": type, "classifiers": classifiers}
     json_form = json.dumps(dict_form)
     if return_json:
         return json_form
     else:
         return dict_form
+
 
 def data_model_json(folder_id, label, type='Data Standard', classifiers=None,
                     description=None, author=None, organisation=None, return_json=False):
@@ -59,12 +60,13 @@ def data_model_json(folder_id, label, type='Data Standard', classifiers=None,
     if organisation is None:
         organisation = ""
     dict_form = {"folder": folder_id, "label": label, "description": description,
-            "author": author, "organisation": organisation, "type": type, "classifiers": classifiers}
+                 "author": author, "organisation": organisation, "type": type, "classifiers": classifiers}
     json_form = json.dumps(dict_form)
     if return_json:
         return json_form
     else:
         return dict_form
+
 
 def data_class_json(label, domainType="DataClass", description=None, classifiers=None, metadata=None,
                     minMultiplicity=None, maxMultiplicity=None, return_json=False):
@@ -72,13 +74,14 @@ def data_class_json(label, domainType="DataClass", description=None, classifiers
         classifiers = []
     if metadata is None:
         metadata = []
-    dict_form= {"domainType": domainType, "label": label, "classifiers": classifiers, "description":description,
-                "metadata": metadata, "minMultiplicity": minMultiplicity, "maxMultiplicity": maxMultiplicity}
+    dict_form = {"domainType": domainType, "label": label, "classifiers": classifiers, "description": description,
+                 "metadata": metadata, "minMultiplicity": minMultiplicity, "maxMultiplicity": maxMultiplicity}
     json_form = json.dumps(dict_form)
     if return_json:
         return json_form
     else:
         return dict_form
+
 
 def data_element_json(label, datatype=None, domainType="DataElement", description=None, classifiers=None,
                       metadata=None,
@@ -92,13 +95,14 @@ def data_element_json(label, datatype=None, domainType="DataElement", descriptio
     if description is None:
         description = ""
     dict_form = {"domainType": domainType, "label": label, "description": description, "dataType": datatype,
-                "classifiers": classifiers, "metadata": metadata, "minMultiplicity": minMultiplicity,
-                "maxMultiplicity": maxMultiplicity}
+                 "classifiers": classifiers, "metadata": metadata, "minMultiplicity": minMultiplicity,
+                 "maxMultiplicity": maxMultiplicity}
     json_form = json.dumps(dict_form)
     if return_json:
         return json_form
     else:
         return dict_form
+
 
 def data_type_json(label, domainType="PrimitiveType", description=None, organisation=None,
                    classifiers=None, metadata=None, referenceClass=None, referenceDataType=None,
@@ -112,14 +116,15 @@ def data_type_json(label, domainType="PrimitiveType", description=None, organisa
     if organisation is None:
         organisation = ""
     dict_form = {"label": label, "description": description, "organisation": organisation, "domainType": domainType,
-                "referenceDataType": referenceDataType, "referenceClass": referenceClass,
-                "modelResourceDomainType": modelResourceDomainType, "modelResourceId": modelResourceId,
-                "classifiers": classifiers, "enumerationValues": enumerationValues, "metadata": metadata}
+                 "referenceDataType": referenceDataType, "referenceClass": referenceClass,
+                 "modelResourceDomainType": modelResourceDomainType, "modelResourceId": modelResourceId,
+                 "classifiers": classifiers, "enumerationValues": enumerationValues, "metadata": metadata}
     json_form = json.dumps(dict_form)
     if return_json:
         return json_form
     else:
         return dict_form
+
 
 def add_profile_to_data_model_json(metadata_namespace, data_model_id, data_model_label, applicable_domains='',
                                    return_json=False):
@@ -154,14 +159,60 @@ def add_profile_to_data_model_json(metadata_namespace, data_model_id, data_model
 
 def add_profile_to_data_element_json(data_element_id, data_element_label, return_json=False):
     dict_form = {'sections':
-          [{'name': 'Profile Specification', 'description': 'The details necessary for this Data Element to define a field for a dynamic profile.', 'fields':
-        [{'fieldName': 'Metadata Property Name', 'metadataPropertyName': 'metadataPropertyName', 'description': 'The key under which this property of this profile will be stored', 'maxMultiplicity': 1, 'minMultiplicity': 1, 'allowedValues': None, 'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None, 'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True, 'currentValue': ''},
-        {'fieldName': 'Default Value', 'metadataPropertyName': 'defaultValue', 'description': 'The default value that will be offered for this property', 'maxMultiplicity': 1, 'minMultiplicity': 0, 'allowedValues': None, 'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None, 'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True, 'currentValue': ''},
-        {'fieldName': 'Regular expression', 'metadataPropertyName': 'regularExpression', 'description': 'A regular expression that may be used to validate string fields', 'maxMultiplicity': 1, 'minMultiplicity': 0, 'allowedValues': None, 'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None, 'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True, 'currentValue': ''},
-        {'fieldName': 'May be edited after finalisation', 'metadataPropertyName': 'editableAfterFinalisation', 'description': 'If the owning model is editable after finalisation, determines whether this field may be edited after the owning model has been finalised', 'maxMultiplicity': 1, 'minMultiplicity': 1, 'allowedValues': None, 'regularExpression': None, 'dataType': 'boolean', 'derived': False, 'derivedFrom': None, 'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True, 'currentValue': 'true'}]}],
-           'id': data_element_id, 'label': data_element_label, 'domainType': 'DataElement', 'namespace': 'uk.ac.ox.softeng.maurodatamapper.profile', 'name': 'ProfileSpecificationFieldProfileService'}
+                     [{'name': 'Profile Specification',
+                       'description': 'The details necessary for this Data Element to define a field for a dynamic profile.',
+                       'fields':
+                           [{'fieldName': 'Metadata Property Name', 'metadataPropertyName': 'metadataPropertyName',
+                             'description': 'The key under which this property of this profile will be stored',
+                             'maxMultiplicity': 1, 'minMultiplicity': 1, 'allowedValues': None,
+                             'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None,
+                             'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True,
+                             'currentValue': ''},
+                            {'fieldName': 'Default Value', 'metadataPropertyName': 'defaultValue',
+                             'description': 'The default value that will be offered for this property',
+                             'maxMultiplicity': 1, 'minMultiplicity': 0, 'allowedValues': None,
+                             'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None,
+                             'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True,
+                             'currentValue': ''},
+                            {'fieldName': 'Regular expression', 'metadataPropertyName': 'regularExpression',
+                             'description': 'A regular expression that may be used to validate string fields',
+                             'maxMultiplicity': 1, 'minMultiplicity': 0, 'allowedValues': None,
+                             'regularExpression': None, 'dataType': 'string', 'derived': False, 'derivedFrom': None,
+                             'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True,
+                             'currentValue': ''},
+                            {'fieldName': 'May be edited after finalisation',
+                             'metadataPropertyName': 'editableAfterFinalisation',
+                             'description': 'If the owning model is editable after finalisation, determines whether this field may be edited after the owning model has been finalised',
+                             'maxMultiplicity': 1, 'minMultiplicity': 1, 'allowedValues': None,
+                             'regularExpression': None, 'dataType': 'boolean', 'derived': False, 'derivedFrom': None,
+                             'uneditable': False, 'defaultValue': None, 'editableAfterFinalisation': True,
+                             'currentValue': 'true'}]}],
+                 'id': data_element_id, 'label': data_element_label, 'domainType': 'DataElement',
+                 'namespace': 'uk.ac.ox.softeng.maurodatamapper.profile',
+                 'name': 'ProfileSpecificationFieldProfileService'}
     json_form = json.dumps(dict_form)
     if return_json:
         return json_form
     else:
         return dict_form
+
+
+def create_profile_from_erwin_xml_json(erwin_xml):
+    profile_constructor_json = {}
+    profile_names = []
+    parsed_xml = et.parse(erwin_xml)
+    high_level_objects = list(parsed_xml.iter('Entity'))
+    for entities in high_level_objects:
+        profile_names.append(entities.attrib['Name'])
+        my_key = entities.attrib['Name']
+        my_val = []
+        attribute_groups = entities.find('Attribute_Groups')
+        attributes = attribute_groups.findall('Attribute')
+        attribute_props = [attribute.find('AttributeProps') for attribute in attributes]
+        for items in attribute_props:
+            my_dict = {}
+            for properties in items:
+                my_dict[properties.tag] = properties.text
+            my_val.append(my_dict)
+            profile_constructor_json[my_key] = my_val
+    return profile_constructor_json
